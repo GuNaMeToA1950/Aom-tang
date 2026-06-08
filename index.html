@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vestly</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&family=Sarabun:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#0f1117;--ink-soft:#4a4d5a;--ink-muted:#9499a8;
+  --surface:#f7f6f2;--white:#ffffff;
+  --accent:#1a6b4a;--accent-light:#e6f2ec;--accent-mid:#2d9b6e;
+  --gold:#c9a84c;--gold-light:#faf5e9;
+  --red:#c0392b;--red-light:#fdf0ef;
+  --border:rgba(15,17,23,0.08);
+  --sidebar:220px;--radius:16px;--radius-sm:8px;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans','Sarabun',sans-serif;background:var(--surface);color:var(--ink);-webkit-font-smoothing:antialiased;}
+
+/* ─── LOGIN PAGE ─── */
+#login-page{
+  display:flex;min-height:100vh;
+}
+.login-left{
+  width:420px;flex-shrink:0;background:var(--ink);
+  padding:3rem;display:flex;flex-direction:column;justify-content:space-between;
+}
+.login-logo{font-family:'DM Serif Display',serif;font-size:1.6rem;color:#fff;}
+.login-logo span{color:var(--accent-mid);}
+.login-left-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:2rem 0;}
+.login-left-body h2{font-family:'DM Serif Display',serif;font-size:2.4rem;line-height:1.2;color:#fff;letter-spacing:-1px;margin-bottom:1rem;}
+.login-left-body h2 em{font-style:italic;color:var(--accent-mid);}
+.login-left-body p{font-family:'Sarabun',sans-serif;font-size:.9rem;color:rgba(255,255,255,.45);line-height:1.75;font-weight:300;}
+.login-perks{margin-top:2rem;display:flex;flex-direction:column;gap:.85rem;}
+.perk{display:flex;align-items:flex-start;gap:.75rem;}
+.perk-dot{width:20px;height:20px;border-radius:50%;background:var(--accent);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;margin-top:1px;}
+.perk-text{font-size:.82rem;color:rgba(255,255,255,.6);font-family:'Sarabun',sans-serif;}
+.perk-text strong{color:#fff;font-weight:500;}
+.login-right{
+  flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;
+}
+.login-box{width:100%;max-width:400px;}
+.login-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:2rem;}
+.login-tab{
+  flex:1;padding:.75rem;text-align:center;font-size:.875rem;
+  color:var(--ink-muted);cursor:pointer;border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:color .2s,border-color .2s;
+  border:none;background:none;font-family:'DM Sans',sans-serif;
+}
+.login-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.form-title{font-family:'DM Serif Display',serif;font-size:1.8rem;letter-spacing:-.5px;margin-bottom:.35rem;}
+.form-sub{font-size:.875rem;color:var(--ink-muted);font-family:'Sarabun',sans-serif;margin-bottom:2rem;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:.78rem;font-weight:500;color:var(--ink-soft);margin-bottom:.35rem;}
+.field input,.field select{
+  width:100%;padding:.72rem 1rem;
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-family:'DM Sans','Sarabun',sans-serif;font-size:.9rem;color:var(--ink);
+  outline:none;transition:border-color .2s,box-shadow .2s;background:var(--white);
+  -webkit-appearance:none;
+}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,107,74,.1);}
+.field input::placeholder{color:var(--ink-muted);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.btn-main{
+  width:100%;padding:.85rem;background:var(--accent);color:#fff;
+  border:none;border-radius:var(--radius-sm);font-size:.9rem;font-weight:500;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;
+  display:flex;align-items:center;justify-content:center;gap:.4rem;
+}
+.btn-main:hover{background:#145a3d;}
+.login-err{font-size:.78rem;color:var(--red);margin-top:.5rem;display:none;font-family:'Sarabun',sans-serif;}
+.login-terms{font-size:.72rem;color:var(--ink-muted);text-align:center;margin-top:1rem;font-family:'Sarabun',sans-serif;line-height:1.6;}
+.login-terms a{color:var(--accent);text-decoration:none;}
+@media(max-width:768px){.login-left{display:none;}.login-right{padding:1.5rem;}}
+
+/* ─── DASHBOARD PAGE ─── */
+#dash-page{display:none;min-height:100vh;flex-direction:column;}
+#dash-page.show{display:flex;}
+.sidebar{
+  width:var(--sidebar);flex-shrink:0;background:var(--white);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  padding:1.5rem 0;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;
+}
+.sb-logo{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--ink);letter-spacing:-.5px;padding:0 1.25rem 1.5rem;border-bottom:1px solid var(--border);}
+.sb-logo span{color:var(--accent);}
+.sb-section{padding:1.25rem 1rem 0;}
+.sb-label{font-size:.68rem;font-weight:500;color:var(--ink-muted);letter-spacing:.08em;text-transform:uppercase;padding:0 .25rem;margin-bottom:.5rem;}
+.sb-link{
+  display:flex;align-items:center;gap:.65rem;padding:.6rem .75rem;
+  border-radius:var(--radius-sm);font-size:.875rem;color:var(--ink-soft);
+  text-decoration:none;cursor:pointer;transition:background .15s,color .15s;
+  margin-bottom:2px;border:none;background:none;width:100%;text-align:left;
+  font-family:'DM Sans',sans-serif;
+}
+.sb-link:hover{background:var(--surface);color:var(--ink);}
+.sb-link.active{background:var(--accent-light);color:var(--accent);font-weight:500;}
+.sb-icon{font-size:1rem;width:18px;text-align:center;}
+.sb-spacer{flex:1;}
+.sb-user{border-top:1px solid var(--border);padding:1rem 1.25rem 0;display:flex;align-items:center;gap:.75rem;}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:500;color:var(--accent);flex-shrink:0;}
+.sb-name{font-size:.8rem;font-weight:500;}
+.sb-email{font-size:.7rem;color:var(--ink-muted);}
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.1rem 2rem;background:var(--white);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-size:1rem;font-weight:500;}
+.topbar-right{display:flex;align-items:center;gap:.75rem;}
+.btn-sm{
+  display:flex;align-items:center;gap:.35rem;padding:.5rem .9rem;
+  border-radius:999px;border:none;font-size:.8rem;font-weight:500;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s,color .2s;
+}
+.btn-accent{background:var(--accent);color:#fff;}
+.btn-accent:hover{background:#145a3d;}
+.btn-outline{background:var(--white);color:var(--ink-soft);border:1px solid var(--border);}
+.btn-outline:hover{background:var(--surface);color:var(--ink);}
+.content{padding:2rem;flex:1;}
+.greeting{margin-bottom:2rem;}
+.greeting h1{font-family:'DM Serif Display',serif;font-size:1.75rem;letter-spacing:-.5px;margin-bottom:.25rem;}
+.greeting p{font-size:.875rem;color:var(--ink-muted);font-family:'Sarabun',sans-serif;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem;}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;}
+.stat-card-label{font-size:.72rem;color:var(--ink-muted);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;}
+.stat-card-val{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);letter-spacing:-.5px;margin-bottom:.35rem;}
+.stat-badge{display:inline-flex;align-items:center;gap:.25rem;font-size:.72rem;font-weight:500;padding:2px 8px;border-radius:999px;}
+.badge-up{background:var(--accent-light);color:var(--accent);}
+.badge-neutral{background:var(--surface);color:var(--ink-muted);}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1.1fr;gap:1.25rem;margin-bottom:1.25rem;}
+.grid-3{display:grid;grid-template-columns:1.4fr 1fr;gap:1.25rem;}
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+.card-title{font-size:.9rem;font-weight:500;}
+.card-sub{font-size:.75rem;color:var(--ink-muted);}
+.card-action{font-size:.75rem;color:var(--accent);cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;}
+.chart-wrap{position:relative;height:180px;}
+
+/* GOALS */
+.goal-item{padding:.85rem 0;border-bottom:1px solid var(--border);}
+.goal-item:last-child{border-bottom:none;padding-bottom:0;}
+.goal-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem;}
+.goal-name{font-size:.85rem;font-weight:500;display:flex;align-items:center;gap:.4rem;}
+.goal-meta{font-size:.72rem;color:var(--ink-muted);font-family:'Sarabun',sans-serif;}
+.goal-curr{font-size:.85rem;font-weight:500;}
+.goal-total{font-size:.72rem;color:var(--ink-muted);}
+.prog-track{height:5px;background:var(--surface);border-radius:999px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:999px;background:var(--accent);transition:width .8s ease;}
+.prog-fill.gold{background:var(--gold);}
+.prog-fill.blue{background:#378ADD;}
+.prog-fill.coral{background:#e07050;}
+
+/* TRANSACTIONS */
+.tx-item{display:flex;align-items:center;gap:.85rem;padding:.7rem 0;border-bottom:1px solid var(--border);}
+.tx-item:last-child{border-bottom:none;}
+.tx-icon{width:36px;height:36px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.tx-icon.save{background:var(--accent-light);}
+.tx-icon.spend{background:var(--red-light);}
+.tx-info{flex:1;}
+.tx-name{font-size:.85rem;font-weight:500;}
+.tx-date{font-size:.72rem;color:var(--ink-muted);font-family:'Sarabun',sans-serif;}
+.tx-amt{font-size:.9rem;font-weight:500;}
+.tx-amt.pos{color:var(--accent);}
+.tx-amt.neg{color:var(--red);}
+
+/* EMPTY STATE */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:3rem 1rem;text-align:center;
+}
+.empty-icon{font-size:2.5rem;margin-bottom:1rem;opacity:.4;}
+.empty-title{font-size:.9rem;font-weight:500;color:var(--ink-soft);margin-bottom:.35rem;}
+.empty-text{font-size:.8rem;color:var(--ink-muted);font-family:'Sarabun',sans-serif;line-height:1.6;}
+
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(15,17,23,.45);z-index:200;align-items:center;justify-content:center;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--white);border-radius:var(--radius);padding:2rem;width:100%;max-width:420px;margin:1rem;animation:modalIn .25s ease both;}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.98);}to{opacity:1;transform:none;}}
+.modal-title{font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:.25rem;letter-spacing:-.3px;}
+.modal-sub{font-size:.85rem;color:var(--ink-muted);font-family:'Sarabun',sans-serif;margin-bottom:1.75rem;}
+.modal-btns{display:flex;gap:.75rem;margin-top:1.5rem;}
+.btn-cancel{flex:1;padding:.75rem;border:1px solid var(--border);background:none;border-radius:var(--radius-sm);font-size:.875rem;color:var(--ink-soft);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
+.btn-cancel:hover{background:var(--surface);}
+.btn-confirm{flex:2;padding:.75rem;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:.875rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;}
+.btn-confirm:hover{background:#145a3d;}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--ink);color:#fff;padding:.85rem 1.25rem;border-radius:var(--radius-sm);font-size:.85rem;z-index:999;display:flex;align-items:center;gap:.5rem;transform:translateY(80px);opacity:0;transition:transform .3s ease,opacity .3s ease;pointer-events:none;max-width:320px;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* LOGOUT BTN */
+.btn-logout{display:flex;align-items:center;gap:.5rem;padding:.5rem .75rem;border-radius:var(--radius-sm);font-size:.8rem;color:var(--ink-muted);border:none;background:none;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;transition:background .15s,color .15s;margin-top:.5rem;}
+.btn-logout:hover{background:var(--red-light);color:var(--red);}
+
+/* ─── MEMBERS PAGE ─── */
+.page-section{display:none;}
+.page-section.active{display:block;}
+.member-table{width:100%;border-collapse:collapse;margin-top:.5rem;}
+.member-table th{font-size:.72rem;font-weight:500;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.06em;padding:.6rem 1rem;text-align:left;border-bottom:1px solid var(--border);background:var(--surface);}
+.member-table td{padding:.85rem 1rem;border-bottom:1px solid var(--border);font-size:.875rem;vertical-align:middle;}
+.member-table tr:last-child td{border-bottom:none;}
+.member-table tr:hover td{background:var(--surface);}
+.member-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;color:var(--accent);flex-shrink:0;}
+.member-info{display:flex;align-items:center;gap:.75rem;}
+.member-name{font-weight:500;}
+.member-email{font-size:.72rem;color:var(--ink-muted);}
+.badge-role{display:inline-flex;align-items:center;gap:.25rem;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:999px;letter-spacing:.03em;}
+.badge-admin{background:#faf5e9;color:#c9a84c;border:1px solid #f0e4b8;}
+.badge-member{background:var(--accent-light);color:var(--accent);border:1px solid #c5e8d7;}
+.badge-active{background:var(--accent-light);color:var(--accent);}
+.badge-inactive{background:var(--surface);color:var(--ink-muted);}
+.member-stat{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--ink);}
+.member-stat-sub{font-size:.7rem;color:var(--ink-muted);}
+.members-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;}
+.sum-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;display:flex;align-items:center;gap:.85rem;}
+.sum-icon{font-size:1.5rem;}
+.sum-label{font-size:.72rem;color:var(--ink-muted);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem;}
+.sum-val{font-family:'DM Serif Display',serif;font-size:1.35rem;letter-spacing:-.5px;}
+.you-tag{display:inline-block;font-size:.65rem;font-weight:600;padding:1px 6px;background:var(--gold-light);color:var(--gold);border-radius:999px;border:1px solid #f0e4b8;margin-left:.4rem;vertical-align:middle;}
+
+@media(max-width:1024px){.stats-row{grid-template-columns:repeat(2,1fr);}.grid-2,.grid-3{grid-template-columns:1fr;}.members-summary{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){.sidebar{display:none;}.main{margin-left:0;}.content{padding:1.25rem;}.stats-row{grid-template-columns:repeat(2,1fr);}.members-summary{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════
+     LOGIN PAGE
+═══════════════════════════════ -->
+<div id="login-page">
+  <div class="login-left">
+    <div class="login-logo">Vest<span>ly</span></div>
+    <div class="login-left-body">
+      <h2>เงินที่เก็บได้วันนี้<br>คือ<em>เสรีภาพ</em><br>ของพรุ่งนี้</h2>
+      <p>เครื่องมือออมเงินสำหรับคนวัยทำงาน ติดตามทุกบาท สร้างนิสัยการเงินที่ดี</p>
+      <div class="login-perks">
+        <div class="perk"><div class="perk-dot">✓</div><div class="perk-text"><strong>ฟรีตลอด</strong> ไม่มีค่าสมาชิกซ่อนอยู่</div></div>
+        <div class="perk"><div class="perk-dot">✓</div><div class="perk-text"><strong>ตั้งเป้าหมายได้ไม่จำกัด</strong> บ้าน รถ เที่ยว กองทุนฉุกเฉิน</div></div>
+        <div class="perk"><div class="perk-dot">✓</div><div class="perk-text"><strong>Export ข้อมูล CSV</strong> เก็บประวัติไว้ดูได้ทุกเวลา</div></div>
+      </div>
+    </div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.2);font-family:'Sarabun',sans-serif;">© 2568 Vestly · เงินทุกบาทมีค่า ถ้ารู้จักเก็บ</div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-box">
+      <div class="login-tabs">
+        <button class="login-tab active" onclick="switchTab('signin')">เข้าสู่ระบบ</button>
+        <button class="login-tab" onclick="switchTab('signup')">สมัครสมาชิก</button>
+      </div>
+
+      <!-- SIGN IN -->
+      <div class="tab-panel active" id="tab-signin">
+        <h2 class="form-title">ยินดีต้อนรับกลับ</h2>
+        <p class="form-sub">เข้าสู่ระบบเพื่อดูการออมของคุณ</p>
+        <div class="field">
+          <label>อีเมล</label>
+          <input type="email" id="si-email" placeholder="example@email.com" />
+        </div>
+        <div class="field">
+          <label>รหัสผ่าน</label>
+          <input type="password" id="si-pass" placeholder="รหัสผ่านของคุณ" onkeydown="if(event.key==='Enter')doLogin()" />
+        </div>
+        <div class="login-err" id="si-err">อีเมลหรือรหัสผ่านไม่ถูกต้อง</div>
+        <button class="btn-main" style="margin-top:1.25rem" onclick="doLogin()">เข้าสู่ระบบ →</button>
+        <p class="login-terms" style="margin-top:1rem"><a href="#" onclick="switchTab('signup');return false;">ยังไม่มีบัญชี? สมัครสมาชิกฟรี</a></p>
+      </div>
+
+      <!-- SIGN UP -->
+      <div class="tab-panel" id="tab-signup">
+        <h2 class="form-title">สร้างบัญชีฟรี</h2>
+        <p class="form-sub">เริ่มต้นการออมได้ในไม่กี่นาที</p>
+        <div class="field-row">
+          <div class="field">
+            <label>ชื่อ</label>
+            <input type="text" id="su-fname" placeholder="ชื่อ" />
+          </div>
+          <div class="field">
+            <label>นามสกุล</label>
+            <input type="text" id="su-lname" placeholder="นามสกุล" />
+          </div>
+        </div>
+        <div class="field">
+          <label>อีเมล</label>
+          <input type="email" id="su-email" placeholder="example@email.com" />
+        </div>
+        <div class="field">
+          <label>รหัสผ่าน</label>
+          <input type="password" id="su-pass" placeholder="อย่างน้อย 6 ตัวอักษร" />
+        </div>
+        <div class="login-err" id="su-err">กรุณากรอกข้อมูลให้ครบถ้วน</div>
+        <button class="btn-main" style="margin-top:1.25rem" onclick="doSignup()">สร้างบัญชีและเริ่มออม →</button>
+        <p class="login-terms">การสมัครถือว่าคุณยอมรับ <a href="#">นโยบายความเป็นส่วนตัว</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     DASHBOARD PAGE
+═══════════════════════════════ -->
+<div id="dash-page">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">Vest<span>ly</span></div>
+    <div class="sb-section">
+      <div class="sb-label">หลัก</div>
+      <button class="sb-link active" onclick="navClick(this,'overview')"><span class="sb-icon">📊</span> ภาพรวม</button>
+      <button class="sb-link" onclick="navClick(this,'goals')"><span class="sb-icon">🎯</span> เป้าหมาย</button>
+      <button class="sb-link" onclick="navClick(this,'savings')"><span class="sb-icon">💰</span> บันทึกการออม</button>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">โปรเจค</div>
+      <button class="sb-link" onclick="navClick(this,'members')"><span class="sb-icon">👥</span> สมาชิก</button>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">ข้อมูล</div>
+      <button class="sb-link" onclick="exportCSV()"><span class="sb-icon">📥</span> Export CSV</button>
+      <button class="sb-link" onclick="navClick(this)"><span class="sb-icon">⚙️</span> ตั้งค่า</button>
+    </div>
+    <div class="sb-spacer"></div>
+    <div style="padding:0 1rem;">
+      <button class="btn-logout" onclick="doLogout()">🚪 ออกจากระบบ</button>
+    </div>
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">—</div>
+      <div>
+        <div class="sb-name" id="sb-name">—</div>
+        <div class="sb-email" id="sb-email">—</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">ภาพรวมการออม</div>
+      <div class="topbar-right">
+        <button class="btn-sm btn-outline" onclick="exportCSV()">📥 Export CSV</button>
+        <button class="btn-sm btn-accent" onclick="openSaveModal()">+ บันทึกการออม</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- PAGE: OVERVIEW (default) -->
+      <div class="page-section active" id="page-overview">
+      <div class="greeting">
+        <h1 id="greeting-name">สวัสดี 👋</h1>
+        <p id="greeting-sub">เริ่มบันทึกการออมวันแรกของคุณได้เลย</p>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card-label">ออมสะสมทั้งหมด</div>
+          <div class="stat-card-val" id="st-total">฿0</div>
+          <span class="stat-badge badge-neutral" id="st-total-badge">เริ่มออมได้เลย</span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">ออมเดือนนี้</div>
+          <div class="stat-card-val" id="st-month">฿0</div>
+          <span class="stat-badge badge-neutral" id="st-month-badge">ยังไม่มีรายการ</span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">จำนวนเป้าหมาย</div>
+          <div class="stat-card-val" id="st-goals">0</div>
+          <span class="stat-badge badge-neutral">เป้าหมาย</span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">จำนวนรายการ</div>
+          <div class="stat-card-val" id="st-count">0</div>
+          <span class="stat-badge badge-neutral">รายการทั้งหมด</span>
+        </div>
+      </div>
+
+      <!-- CHART + GOALS -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">ยอดออมรายเดือน</div>
+              <div class="card-sub" id="chart-sub">ยังไม่มีข้อมูล</div>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="savingsChart"></canvas>
+          </div>
+          <div id="chart-empty" class="empty-state" style="display:none;padding:2rem 0;">
+            <div class="empty-icon">📊</div>
+            <div class="empty-title">ยังไม่มีข้อมูลกราฟ</div>
+            <div class="empty-text">เริ่มบันทึกการออมเพื่อดูกราฟรายเดือน</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">เป้าหมายของคุณ</div>
+            <button class="card-action" onclick="openGoalModal()">+ เพิ่ม</button>
+          </div>
+          <div id="goals-list">
+            <div class="empty-state" id="goals-empty">
+              <div class="empty-icon">🎯</div>
+              <div class="empty-title">ยังไม่มีเป้าหมาย</div>
+              <div class="empty-text">กด "+ เพิ่ม" เพื่อตั้งเป้าหมายการออมแรกของคุณ</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">รายการทั้งหมด</div>
+            <div class="card-sub" id="tx-sub">ยังไม่มีรายการ</div>
+          </div>
+          <button class="card-action" onclick="exportCSV()">📥 Export CSV</button>
+        </div>
+        <div id="tx-list">
+          <div class="empty-state" id="tx-empty">
+            <div class="empty-icon">💰</div>
+            <div class="empty-title">ยังไม่มีรายการออมเงิน</div>
+            <div class="empty-text">กด "บันทึกการออม" ด้านบนเพื่อเริ่มต้น</div>
+          </div>
+        </div>
+      </div>
+      </div><!-- end page-overview -->
+
+      <!-- PAGE: GOALS -->
+      <div class="page-section" id="page-goals">
+        <div class="greeting">
+          <h1>เป้าหมายการออม 🎯</h1>
+          <p>ติดตามความคืบหน้าของทุกเป้าหมาย</p>
+        </div>
+        <div class="members-summary" id="goals-summary-row">
+          <div class="sum-card"><div class="sum-icon">🎯</div><div><div class="sum-label">เป้าหมายทั้งหมด</div><div class="sum-val" id="gp-count">0</div></div></div>
+          <div class="sum-card"><div class="sum-icon">✅</div><div><div class="sum-label">สำเร็จแล้ว</div><div class="sum-val" id="gp-done">0</div></div></div>
+          <div class="sum-card"><div class="sum-icon">💰</div><div><div class="sum-label">ออมรวมทุกเป้าหมาย</div><div class="sum-val" id="gp-total">฿0</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">เป้าหมายของคุณ</div>
+            <button class="card-action" onclick="openGoalModal()">+ เพิ่มเป้าหมาย</button>
+          </div>
+          <div id="goals-page-list"></div>
+        </div>
+      </div><!-- end page-goals -->
+
+      <!-- PAGE: SAVINGS LOG -->
+      <div class="page-section" id="page-savings">
+        <div class="greeting">
+          <h1>บันทึกการออม 💰</h1>
+          <p>ประวัติการออมทั้งหมดของคุณ</p>
+        </div>
+        <div class="members-summary">
+          <div class="sum-card"><div class="sum-icon">💵</div><div><div class="sum-label">ออมสะสมทั้งหมด</div><div class="sum-val" id="sp-total">฿0</div></div></div>
+          <div class="sum-card"><div class="sum-icon">📅</div><div><div class="sum-label">ออมเดือนนี้</div><div class="sum-val" id="sp-month">฿0</div></div></div>
+          <div class="sum-card"><div class="sum-icon">📋</div><div><div class="sum-label">จำนวนรายการ</div><div class="sum-val" id="sp-count">0</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">รายการออมทั้งหมด</div>
+            <div style="display:flex;gap:.5rem;">
+              <button class="card-action" onclick="exportCSV()">📥 Export CSV</button>
+              <button class="btn-sm btn-accent" onclick="openSaveModal()">+ บันทึกการออม</button>
+            </div>
+          </div>
+          <!-- filter bar -->
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem;padding:0 .25rem;">
+            <select id="sp-filter-goal" onchange="renderSavingsPage()" style="padding:.45rem .75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;background:var(--white);color:var(--ink);outline:none;">
+              <option value="">🎯 ทุกเป้าหมาย</option>
+            </select>
+            <select id="sp-filter-month" onchange="renderSavingsPage()" style="padding:.45rem .75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;background:var(--white);color:var(--ink);outline:none;">
+              <option value="">📅 ทุกเดือน</option>
+            </select>
+          </div>
+          <div id="sp-tx-list"></div>
+        </div>
+      </div><!-- end page-savings -->
+
+      <!-- PAGE: MEMBERS -->
+      <div class="page-section" id="page-members">
+        <div class="greeting">
+          <h1>สมาชิกโปรเจค 👥</h1>
+          <p id="members-sub">ดูว่าใครลงทะเบียนและออมเงินบ้างในโปรเจคนี้</p>
+        </div>
+        <div class="members-summary">
+          <div class="sum-card"><div class="sum-icon">👤</div><div><div class="sum-label">สมาชิกทั้งหมด</div><div class="sum-val" id="mem-count">0</div></div></div>
+          <div class="sum-card"><div class="sum-icon">💰</div><div><div class="sum-label">ออมรวมทุกคน</div><div class="sum-val" id="mem-total">฿0</div></div></div>
+          <div class="sum-card"><div class="sum-icon">🎯</div><div><div class="sum-label">เป้าหมายรวม</div><div class="sum-val" id="mem-goals">0</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">รายชื่อสมาชิก</div>
+            <div class="card-sub" id="mem-last-update"></div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="member-table" id="members-table">
+              <thead>
+                <tr>
+                  <th>สมาชิก</th>
+                  <th>บทบาท</th>
+                  <th>วันที่สมัคร</th>
+                  <th>ออมสะสม</th>
+                  <th>จำนวนรายการ</th>
+                  <th>เป้าหมาย</th>
+                  <th>เข้าใช้ล่าสุด</th>
+                </tr>
+              </thead>
+              <tbody id="members-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="members-empty" style="display:none;">
+            <div class="empty-icon">👥</div>
+            <div class="empty-title">ยังไม่มีสมาชิก</div>
+            <div class="empty-text">เมื่อมีคนสมัครในเบราว์เซอร์นี้จะแสดงที่นี่</div>
+          </div>
+        </div>
+      </div><!-- end page-members -->
+
+    </div>
+  </div>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-backdrop" id="save-modal" onclick="if(event.target===this)closeSaveModal()">
+  <div class="modal">
+    <div class="modal-title">บันทึกการออม</div>
+    <div class="modal-sub">เพิ่มยอดออมของวันนี้</div>
+    <div class="field"><label>จำนวนเงิน (บาท)</label><input type="number" id="m-amount" placeholder="เช่น 500" min="1"/></div>
+    <div class="field">
+      <label>เป้าหมาย</label>
+      <select id="m-goal"><option value="">💰 ออมทั่วไป</option></select>
+    </div>
+    <div class="field"><label>หมายเหตุ</label><input type="text" id="m-note" placeholder="เช่น เงินเดือนส่วนหนึ่ง"/></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeSaveModal()">ยกเลิก</button>
+      <button class="btn-confirm" onclick="saveMoney()">บันทึก ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOAL MODAL -->
+<div class="modal-backdrop" id="goal-modal" onclick="if(event.target===this)closeGoalModal()">
+  <div class="modal">
+    <div class="modal-title">เพิ่มเป้าหมายใหม่</div>
+    <div class="modal-sub">ตั้งเป้าหมายการออมของคุณ</div>
+    <div class="field"><label>ชื่อเป้าหมาย</label><input type="text" id="g-name" placeholder="เช่น ซื้อบ้าน, เที่ยวญี่ปุ่น"/></div>
+    <div class="field"><label>จำนวนเงินเป้าหมาย (บาท)</label><input type="number" id="g-target" placeholder="เช่น 100000" min="1"/></div>
+    <div class="field">
+      <label>ไอคอน</label>
+      <select id="g-icon">
+        <option value="🏠">🏠 บ้าน / คอนโด</option>
+        <option value="✈️">✈️ ท่องเที่ยว</option>
+        <option value="🛡️">🛡️ กองทุนฉุกเฉิน</option>
+        <option value="🚗">🚗 รถยนต์</option>
+        <option value="📈">📈 ลงทุน</option>
+        <option value="🎓">🎓 การศึกษา</option>
+        <option value="💍">💍 แต่งงาน</option>
+        <option value="🌟">🌟 อื่นๆ</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeGoalModal()">ยกเลิก</button>
+      <button class="btn-confirm" onclick="addGoal()">เพิ่มเป้าหมาย ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ <span id="toast-msg"></span></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCl8mSwcUt-MqQpoprLRbzZHKLXbSFElNA",
+  authDomain: "aom-tang.firebaseapp.com",
+  projectId: "aom-tang",
+  storageBucket: "aom-tang.firebasestorage.app",
+  messagingSenderId: "181515416897",
+  appId: "1:181515416897:web:0efcae579426886adc1dc0"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ── STATE ──
+let currentUser = null;
+let localUD = { savings: [], goals: [] };
+
+function getUD() { return localUD; }
+async function saveUD(d) {
+  localUD = d;
+  await setDoc(doc(db, 'userData', currentUser.email), d);
+}
+
+// ── AUTH ──
+function switchTab(tab) {
+  document.querySelectorAll('.login-tab').forEach((t, i) => t.classList.toggle('active', (i === 0) === (tab === 'signin')));
+  document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
+  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+}
+window.switchTab = switchTab;
+
+function setLoading(btn, loading) {
+  btn.disabled = loading;
+  btn.textContent = loading ? 'กำลังโหลด...' : btn.dataset.label;
+}
+
+async function doLogin() {
+  const email = document.getElementById('si-email').value.trim().toLowerCase();
+  const pass = document.getElementById('si-pass').value;
+  const err = document.getElementById('si-err');
+  const btn = document.querySelector('#tab-signin .btn-main');
+  if (!email || !pass) { err.style.display = 'block'; err.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน'; return; }
+  btn.dataset.label = btn.textContent; setLoading(btn, true);
+  try {
+    const snap = await getDoc(doc(db, 'users', email));
+    if (!snap.exists() || snap.data().password !== pass) {
+      err.style.display = 'block'; err.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+    } else {
+      err.style.display = 'none';
+      await updateDoc(doc(db, 'users', email), { lastLogin: new Date().toISOString() });
+      currentUser = { ...snap.data(), email };
+      await loadUserData();
+      enterDash();
+    }
+  } catch(e) { err.style.display = 'block'; err.textContent = 'เกิดข้อผิดพลาด: ' + e.message; }
+  setLoading(btn, false);
+}
+window.doLogin = doLogin;
+
+async function doSignup() {
+  const fname = document.getElementById('su-fname').value.trim();
+  const lname = document.getElementById('su-lname').value.trim();
+  const email = document.getElementById('su-email').value.trim().toLowerCase();
+  const pass = document.getElementById('su-pass').value;
+  const err = document.getElementById('su-err');
+  const btn = document.querySelector('#tab-signup .btn-main');
+  if (!fname || !email || !pass || pass.length < 6) {
+    err.style.display = 'block';
+    err.textContent = !pass || pass.length < 6 ? 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' : 'กรุณากรอกข้อมูลให้ครบถ้วน';
+    return;
+  }
+  btn.dataset.label = btn.textContent; setLoading(btn, true);
+  try {
+    const existing = await getDoc(doc(db, 'users', email));
+    if (existing.exists()) { err.style.display = 'block'; err.textContent = 'อีเมลนี้ถูกใช้งานแล้ว'; setLoading(btn, false); return; }
+    // check if first user = admin
+    const allSnap = await getDocs(collection(db, 'users'));
+    const isFirst = allSnap.empty;
+    const now = new Date().toISOString();
+    const u = { fname, lname, email, password: pass, joinDate: now, lastLogin: now, role: isFirst ? 'admin' : 'member' };
+    await setDoc(doc(db, 'users', email), u);
+    await setDoc(doc(db, 'userData', email), { savings: [], goals: [] });
+    err.style.display = 'none';
+    currentUser = u;
+    localUD = { savings: [], goals: [] };
+    enterDash();
+  } catch(e) { err.style.display = 'block'; err.textContent = 'เกิดข้อผิดพลาด: ' + e.message; }
+  setLoading(btn, false);
+}
+window.doSignup = doSignup;
+
+async function loadUserData() {
+  const snap = await getDoc(doc(db, 'userData', currentUser.email));
+  localUD = snap.exists() ? snap.data() : { savings: [], goals: [] };
+  if (!localUD.savings) localUD.savings = [];
+  if (!localUD.goals) localUD.goals = [];
+}
+
+function doLogout() {
+  currentUser = null; localUD = { savings: [], goals: [] };
+  document.getElementById('dash-page').classList.remove('show');
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('si-email').value = '';
+  document.getElementById('si-pass').value = '';
+  switchTab('signin');
+}
+window.doLogout = doLogout;
+
+function enterDash() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('dash-page').classList.add('show');
+  const initials = (currentUser.fname[0] || '') + (currentUser.lname ? currentUser.lname[0] : '');
+  document.getElementById('sb-avatar').textContent = initials.toUpperCase();
+  document.getElementById('sb-name').textContent = currentUser.fname + ' ' + (currentUser.lname || '');
+  document.getElementById('sb-email').textContent = currentUser.email;
+  document.getElementById('greeting-name').textContent = 'สวัสดี, ' + currentUser.fname + ' 👋';
+  showPage('overview');
+  renderAll();
+}
+
+// ── PAGE NAVIGATION ──
+function showPage(page) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  const titles = { overview: 'ภาพรวมการออม', members: 'สมาชิกโปรเจค', goals: 'เป้าหมายการออม', savings: 'บันทึกการออม' };
+  document.querySelector('.topbar-title').textContent = titles[page] || 'ภาพรวมการออม';
+  if (page === 'members') renderMembers();
+  if (page === 'goals') renderGoalsPage();
+  if (page === 'savings') renderSavingsPage();
+}
+
+function navClick(el, page) {
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+  if (page) showPage(page);
+}
+window.navClick = navClick;
+let chartInst = null;
+const goalColors = ['','gold','blue','coral','','','',''];
+
+// ── GOALS PAGE ──
+function renderGoalsPage() {
+  const d = getUD();
+  const list = document.getElementById('goals-page-list');
+  const colorMap = ['gold','blue','coral',''];
+  let totalSaved = 0, done = 0;
+
+  if (d.goals.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">ยังไม่มีเป้าหมาย</div><div class="empty-text">กด "+ เพิ่มเป้าหมาย" เพื่อเริ่มต้น</div></div>`;
+    document.getElementById('gp-count').textContent = '0';
+    document.getElementById('gp-done').textContent = '0';
+    document.getElementById('gp-total').textContent = '฿0';
+    return;
+  }
+
+  list.innerHTML = '';
+  d.goals.forEach((g, i) => {
+    const saved = d.savings.filter(r => r.goalId === g.id).reduce((s, r) => s + r.amount, 0);
+    const pct = g.target > 0 ? Math.min(100, Math.round(saved / g.target * 100)) : 0;
+    const remaining = Math.max(0, g.target - saved);
+    const months = g.monthly > 0 && saved < g.target ? Math.ceil(remaining / g.monthly) : null;
+    const clr = colorMap[i % colorMap.length];
+    if (pct >= 100) done++;
+    totalSaved += saved;
+
+    const card = document.createElement('div');
+    card.className = 'goal-item';
+    card.style.cssText = 'margin-bottom:1rem;padding:1.25rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--white);';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <div style="font-size:1.75rem;">${g.icon}</div>
+          <div>
+            <div style="font-weight:600;font-size:1rem;">${g.name}</div>
+            <div style="font-size:.75rem;color:var(--ink-muted);">เป้าหมาย ฿${g.target.toLocaleString()}</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;">${pct}%</div>
+          <div style="font-size:.72rem;color:var(--ink-muted);">${pct>=100?'🎉 สำเร็จ!':('เหลือ ฿'+remaining.toLocaleString())}</div>
+        </div>
+      </div>
+      <div class="prog-track" style="height:10px;margin-bottom:.75rem;"><div class="prog-fill ${clr}" style="width:${pct}%;height:10px;border-radius:999px;"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-muted);">
+        <span>ออมแล้ว <strong style="color:var(--accent);">฿${saved.toLocaleString()}</strong></span>
+        <span>${months ? 'ถึงเป้าใน ~'+months+' เดือน' : pct>=100 ? '✅ ถึงเป้าหมายแล้ว' : 'ยังไม่ได้ตั้งออมรายเดือน'}</span>
+      </div>
+      <div style="margin-top:.75rem;display:flex;gap:.5rem;">
+        <button onclick="openSaveModalWithGoal('${g.id}')" style="flex:1;padding:.5rem;background:var(--accent-light);color:var(--accent);border:none;border-radius:var(--radius-sm);font-size:.8rem;cursor:pointer;font-weight:500;">+ บันทึกการออม</button>
+        <button onclick="deleteGoal('${g.id}')" style="padding:.5rem .85rem;background:var(--red-light);color:var(--red);border:none;border-radius:var(--radius-sm);font-size:.8rem;cursor:pointer;">🗑</button>
+      </div>`;
+    list.appendChild(card);
+  });
+
+  document.getElementById('gp-count').textContent = d.goals.length;
+  document.getElementById('gp-done').textContent = done;
+  document.getElementById('gp-total').textContent = '฿' + totalSaved.toLocaleString();
+}
+
+async function deleteGoal(id) {
+  if (!confirm('ลบเป้าหมายนี้?')) return;
+  const d = getUD();
+  d.goals = d.goals.filter(g => g.id !== id);
+  await saveUD(d);
+  renderAll(); renderGoalsPage();
+  showToast('ลบเป้าหมายแล้ว');
+}
+window.deleteGoal = deleteGoal;
+
+function openSaveModalWithGoal(goalId) {
+  openSaveModal();
+  setTimeout(() => { document.getElementById('m-goal').value = goalId; }, 50);
+}
+window.openSaveModalWithGoal = openSaveModalWithGoal;
+
+// ── SAVINGS PAGE ──
+function renderSavingsPage() {
+  const d = getUD();
+  const now = new Date();
+  const thisMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  const totalSaved = d.savings.reduce((s, r) => s + r.amount, 0);
+  const monthSaved = d.savings.filter(r => r.date.startsWith(thisMonth)).reduce((s, r) => s + r.amount, 0);
+
+  document.getElementById('sp-total').textContent = '฿' + totalSaved.toLocaleString();
+  document.getElementById('sp-month').textContent = '฿' + monthSaved.toLocaleString();
+  document.getElementById('sp-count').textContent = d.savings.length;
+
+  // populate filters
+  const goalSel = document.getElementById('sp-filter-goal');
+  const curGoal = goalSel.value;
+  goalSel.innerHTML = '<option value="">🎯 ทุกเป้าหมาย</option>';
+  d.goals.forEach(g => {
+    const o = document.createElement('option');
+    o.value = g.id; o.textContent = g.icon + ' ' + g.name;
+    goalSel.appendChild(o);
+  });
+  goalSel.value = curGoal;
+
+  const monthSel = document.getElementById('sp-filter-month');
+  const curMonth = monthSel.value;
+  const months = [...new Set(d.savings.map(r => r.date.slice(0,7)))].sort().reverse();
+  monthSel.innerHTML = '<option value="">📅 ทุกเดือน</option>';
+  const thNames = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  months.forEach(m => {
+    const [y, mo] = m.split('-');
+    const o = document.createElement('option');
+    o.value = m; o.textContent = thNames[+mo] + ' ' + (+y+543);
+    monthSel.appendChild(o);
+  });
+  monthSel.value = curMonth;
+
+  // filter & render
+  let filtered = [...d.savings].reverse();
+  if (goalSel.value) filtered = filtered.filter(r => r.goalId === goalSel.value);
+  if (monthSel.value) filtered = filtered.filter(r => r.date.startsWith(monthSel.value));
+
+  const container = document.getElementById('sp-tx-list');
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">💰</div><div class="empty-title">ไม่มีรายการ</div><div class="empty-text">ลองเปลี่ยนตัวกรอง หรือเพิ่มการออมใหม่</div></div>`;
+    return;
+  }
+
+  // group by date
+  const groups = {};
+  filtered.forEach(r => { if (!groups[r.date]) groups[r.date] = []; groups[r.date].push(r); });
+  container.innerHTML = '';
+  Object.keys(groups).sort().reverse().forEach(date => {
+    const dayTotal = groups[date].reduce((s, r) => s + r.amount, 0);
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;padding:.5rem .25rem;font-size:.75rem;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);margin-bottom:.25rem;';
+    header.innerHTML = `<span>${formatDate(date)}</span><span>+฿${dayTotal.toLocaleString()}</span>`;
+    container.appendChild(header);
+    groups[date].forEach(r => {
+      const goalName = d.goals.find(g => g.id === r.goalId)?.name || 'ออมทั่วไป';
+      const goalIcon = d.goals.find(g => g.id === r.goalId)?.icon || '💰';
+      const el = document.createElement('div');
+      el.className = 'tx-item';
+      el.style.cssText = 'display:flex;align-items:center;gap:.85rem;padding:.85rem .25rem;border-bottom:1px solid var(--border);';
+      el.innerHTML = `
+        <div class="tx-icon save" style="font-size:1.3rem;">${goalIcon}</div>
+        <div style="flex:1;">
+          <div style="font-size:.875rem;font-weight:500;">${r.note || 'ออมเงิน'}</div>
+          <div style="font-size:.72rem;color:var(--ink-muted);">${goalName}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <div style="font-family:'DM Serif Display',serif;color:var(--accent);">+฿${r.amount.toLocaleString()}</div>
+          <button onclick="deleteSaving('${r.id}')" style="background:none;border:none;color:var(--ink-muted);cursor:pointer;font-size:.85rem;padding:.2rem .4rem;border-radius:4px;" title="ลบ">🗑</button>
+        </div>`;
+      container.appendChild(el);
+    });
+  });
+}
+window.renderSavingsPage = renderSavingsPage;
+
+async function deleteSaving(id) {
+  if (!confirm('ลบรายการนี้?')) return;
+  const d = getUD();
+  d.savings = d.savings.filter(r => r.id !== id);
+  await saveUD(d);
+  renderAll(); renderSavingsPage();
+  showToast('ลบรายการแล้ว');
+}
+window.deleteSaving = deleteSaving;
+
+
+async function renderMembers() {
+  const tbody = document.getElementById('members-tbody');
+  const empty = document.getElementById('members-empty');
+  const table = document.getElementById('members-table');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--ink-muted);">กำลังโหลด...</td></tr>';
+
+  try {
+    const [usersSnap, allDataSnap] = await Promise.all([
+      getDocs(collection(db, 'users')),
+      getDocs(collection(db, 'userData'))
+    ]);
+
+    const allUsers = {};
+    usersSnap.forEach(d => { allUsers[d.id] = d.data(); });
+    const allData = {};
+    allDataSnap.forEach(d => { allData[d.id] = d.data(); });
+
+    const emailList = Object.keys(allUsers);
+    if (emailList.length === 0) {
+      table.style.display = 'none'; empty.style.display = 'flex';
+      document.getElementById('mem-count').textContent = '0';
+      document.getElementById('mem-total').textContent = '฿0';
+      document.getElementById('mem-goals').textContent = '0';
+      return;
+    }
+    table.style.display = 'table'; empty.style.display = 'none';
+    tbody.innerHTML = '';
+
+    let totalSavedAll = 0, totalGoalsAll = 0;
+    const sorted = emailList.sort((a, b) => {
+      if (allUsers[a].role === 'admin') return -1;
+      if (allUsers[b].role === 'admin') return 1;
+      return (allUsers[a].joinDate || '') < (allUsers[b].joinDate || '') ? -1 : 1;
+    });
+
+    sorted.forEach(email => {
+      const u = allUsers[email];
+      const ud = allData[email] || { savings: [], goals: [] };
+      const savings = ud.savings || [];
+      const goals = ud.goals || [];
+      const saved = savings.reduce((s, r) => s + (r.amount || 0), 0);
+      totalSavedAll += saved; totalGoalsAll += goals.length;
+
+      const initials = ((u.fname||'?')[0] + (u.lname ? u.lname[0] : '')).toUpperCase();
+      const isMe = currentUser && email === currentUser.email;
+      const isAdmin = u.role === 'admin';
+      const joinStr = u.joinDate ? formatDate(u.joinDate.slice(0,10)) : '—';
+      const lastStr = u.lastLogin ? formatDate(u.lastLogin.slice(0,10)) : '—';
+      const now = new Date();
+      const thisMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+      const activeBadge = savings.some(r => r.date && r.date.startsWith(thisMonth))
+        ? '<span class="stat-badge badge-active">✓ Active</span>'
+        : '<span class="stat-badge badge-inactive">Inactive</span>';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><div class="member-info">
+          <div class="member-avatar">${initials}</div>
+          <div>
+            <div class="member-name">${u.fname} ${u.lname || ''}${isMe ? '<span class="you-tag">คุณ</span>' : ''}</div>
+            <div class="member-email">${email}</div>
+          </div>
+        </div></td>
+        <td>${isAdmin ? '<span class="badge-role badge-admin">👑 Admin</span>' : '<span class="badge-role badge-member">Member</span>'}</td>
+        <td style="font-size:.8rem;color:var(--ink-soft);">${joinStr}</td>
+        <td><div class="member-stat">฿${saved.toLocaleString()}</div><div class="member-stat-sub">${activeBadge}</div></td>
+        <td style="font-size:.875rem;">${savings.length} รายการ</td>
+        <td style="font-size:.875rem;">${goals.length} เป้าหมาย</td>
+        <td style="font-size:.8rem;color:var(--ink-soft);">${lastStr}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('mem-count').textContent = emailList.length;
+    document.getElementById('mem-total').textContent = '฿' + totalSavedAll.toLocaleString();
+    document.getElementById('mem-goals').textContent = totalGoalsAll;
+    document.getElementById('mem-last-update').textContent = 'อัปเดตล่าสุด: ' + new Date().toLocaleTimeString('th-TH');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--red);">เกิดข้อผิดพลาด: ${e.message}</td></tr>`;
+  }
+}
+
+
+
+function renderAll() {
+  const d = getUD();
+  const now = new Date();
+  const thisMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const totalSaved = d.savings.reduce((s, r) => s + r.amount, 0);
+  const monthSaved = d.savings.filter(r => r.date.startsWith(thisMonth)).reduce((s, r) => s + r.amount, 0);
+
+  document.getElementById('st-total').textContent = '฿' + totalSaved.toLocaleString();
+  document.getElementById('st-month').textContent = '฿' + monthSaved.toLocaleString();
+  document.getElementById('st-goals').textContent = d.goals.length;
+  document.getElementById('st-count').textContent = d.savings.length;
+
+  if (totalSaved > 0) {
+    document.getElementById('st-total-badge').textContent = d.savings.length + ' รายการ';
+    document.getElementById('st-total-badge').className = 'stat-badge badge-up';
+  }
+  if (monthSaved > 0) {
+    document.getElementById('st-month-badge').textContent = '↑ เดือนนี้';
+    document.getElementById('st-month-badge').className = 'stat-badge badge-up';
+  }
+
+  document.getElementById('greeting-sub').textContent =
+    totalSaved > 0
+      ? 'คุณออมไปแล้วทั้งหมด ฿' + totalSaved.toLocaleString() + ' · ยอดเยี่ยมมาก!'
+      : 'เริ่มบันทึกการออมวันแรกของคุณได้เลย';
+
+  renderChart(d);
+  renderGoals(d);
+  renderTx(d);
+  refreshGoalSelect(d);
+}
+
+function renderChart(d) {
+  const months = {};
+  d.savings.forEach(r => {
+    const m = r.date.slice(0, 7);
+    months[m] = (months[m] || 0) + r.amount;
+  });
+  const keys = Object.keys(months).sort().slice(-6);
+  const canvas = document.getElementById('savingsChart');
+  const empty = document.getElementById('chart-empty');
+  if (keys.length === 0) {
+    canvas.style.display = 'none'; empty.style.display = 'flex';
+    document.getElementById('chart-sub').textContent = 'ยังไม่มีข้อมูล';
+    if (chartInst) { chartInst.destroy(); chartInst = null; }
+    return;
+  }
+  canvas.style.display = 'block'; empty.style.display = 'none';
+  document.getElementById('chart-sub').textContent = 'ย้อนหลัง ' + keys.length + ' เดือน';
+  const labels = keys.map(k => { const [y, m] = k.split('-'); return ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][+m]; });
+  const data = keys.map(k => months[k]);
+  const bg = data.map((_, i) => i === data.length - 1 ? 'rgba(26,107,74,.85)' : 'rgba(26,107,74,.12)');
+  if (chartInst) chartInst.destroy();
+  chartInst = new Chart(document.getElementById('savingsChart').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: bg, borderRadius: 6, borderSkipped: false }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'Sarabun', size: 11 }, color: '#9499a8' } },
+        y: { grid: { color: 'rgba(15,17,23,.05)' }, ticks: { font: { size: 11 }, color: '#9499a8', callback: v => '฿' + v.toLocaleString() } }
+      }
+    }
+  });
+}
+
+function renderGoals(d) {
+  const list = document.getElementById('goals-list');
+  const empty = document.getElementById('goals-empty');
+  if (d.goals.length === 0) { list.innerHTML = ''; list.appendChild(empty); return; }
+  list.innerHTML = '';
+  const colorMap = ['','gold','blue','coral'];
+  d.goals.forEach((g, i) => {
+    const saved = d.savings.filter(r => r.goalId === g.id).reduce((s, r) => s + r.amount, 0);
+    const pct = g.target > 0 ? Math.min(100, Math.round(saved / g.target * 100)) : 0;
+    const months = g.monthly > 0 && saved < g.target ? Math.ceil((g.target - saved) / g.monthly) : null;
+    const clr = colorMap[i % colorMap.length] || '';
+    const item = document.createElement('div');
+    item.className = 'goal-item';
+    item.innerHTML = `
+      <div class="goal-row">
+        <div class="goal-name"><span>${g.icon}</span> ${g.name}</div>
+        <div style="display:flex;gap:.35rem;align-items:baseline;">
+          <span class="goal-curr">฿${saved.toLocaleString()}</span>
+          <span class="goal-total">/ ฿${g.target.toLocaleString()}</span>
+        </div>
+      </div>
+      <div class="goal-row">
+        <div class="goal-meta">${months ? 'ถึงเป้าใน ' + months + ' เดือน' : pct >= 100 ? '🎉 ถึงเป้าหมายแล้ว!' : 'กำลังออม'}</div>
+        <div class="goal-meta">${pct}%</div>
+      </div>
+      <div class="prog-track"><div class="prog-fill ${clr}" style="width:${pct}%"></div></div>`;
+    list.appendChild(item);
+  });
+}
+
+function renderTx(d) {
+  const list = document.getElementById('tx-list');
+  const empty = document.getElementById('tx-empty');
+  const sub = document.getElementById('tx-sub');
+  if (d.savings.length === 0) { list.innerHTML = ''; list.appendChild(empty); sub.textContent = 'ยังไม่มีรายการ'; return; }
+  sub.textContent = 'ทั้งหมด ' + d.savings.length + ' รายการ';
+  list.innerHTML = '';
+  [...d.savings].reverse().forEach(r => {
+    const goalName = d.goals.find(g => g.id === r.goalId)?.name || 'ออมทั่วไป';
+    const el = document.createElement('div');
+    el.className = 'tx-item';
+    el.innerHTML = `
+      <div class="tx-icon save">💚</div>
+      <div class="tx-info">
+        <div class="tx-name">${r.note || 'ออมเงิน'} · ${goalName}</div>
+        <div class="tx-date">${formatDate(r.date)}</div>
+      </div>
+      <div class="tx-amt pos">+฿${r.amount.toLocaleString()}</div>`;
+    list.appendChild(el);
+  });
+}
+
+function refreshGoalSelect(d) {
+  const sel = document.getElementById('m-goal');
+  sel.innerHTML = '<option value="">💰 ออมทั่วไป</option>';
+  d.goals.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g.id; opt.textContent = g.icon + ' ' + g.name;
+    sel.appendChild(opt);
+  });
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + (d.getFullYear() + 543);
+}
+
+// ── ACTIONS ──
+function openSaveModal() { document.getElementById('save-modal').classList.add('open'); document.getElementById('m-amount').focus(); }
+function closeSaveModal() { document.getElementById('save-modal').classList.remove('open'); document.getElementById('m-amount').value = ''; document.getElementById('m-note').value = ''; }
+window.openSaveModal = openSaveModal; window.closeSaveModal = closeSaveModal;
+
+async function saveMoney() {
+  const amt = parseInt(document.getElementById('m-amount').value);
+  if (!amt || amt < 1) { document.getElementById('m-amount').style.borderColor = '#c0392b'; return; }
+  document.getElementById('m-amount').style.borderColor = '';
+  const d = getUD();
+  d.savings.push({
+    id: Date.now().toString(),
+    amount: amt,
+    goalId: document.getElementById('m-goal').value || '',
+    note: document.getElementById('m-note').value.trim(),
+    date: new Date().toISOString().slice(0, 10)
+  });
+  await saveUD(d);
+  renderAll();
+  closeSaveModal();
+  showToast('บันทึกการออม ฿' + amt.toLocaleString() + ' เรียบร้อย 🎉');
+}
+window.saveMoney = saveMoney;
+
+function openGoalModal() { document.getElementById('goal-modal').classList.add('open'); document.getElementById('g-name').focus(); }
+function closeGoalModal() { document.getElementById('goal-modal').classList.remove('open'); document.getElementById('g-name').value = ''; document.getElementById('g-target').value = ''; }
+window.openGoalModal = openGoalModal; window.closeGoalModal = closeGoalModal;
+
+async function addGoal() {
+  const name = document.getElementById('g-name').value.trim();
+  const target = parseInt(document.getElementById('g-target').value);
+  const icon = document.getElementById('g-icon').value;
+  if (!name || !target) return;
+  const d = getUD();
+  d.goals.push({ id: Date.now().toString(), name, target, icon, monthly: 0 });
+  await saveUD(d);
+  renderAll();
+  closeGoalModal();
+  showToast('เพิ่มเป้าหมาย "' + name + '" เรียบร้อย 🎯');
+}
+window.addGoal = addGoal;
+
+// ── EXPORT CSV ──
+function exportCSV() {
+  const d = getUD();
+  if (d.savings.length === 0) { showToast('ยังไม่มีข้อมูลให้ export'); return; }
+  const rows = [['วันที่','จำนวนเงิน (บาท)','เป้าหมาย','หมายเหตุ']];
+  d.savings.forEach(r => {
+    const goalName = d.goals.find(g => g.id === r.goalId)?.name || 'ออมทั่วไป';
+    rows.push([r.date, r.amount, goalName, r.note || '']);
+  });
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'vestly_savings_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('Export CSV เรียบร้อย 📥');
+}
+window.exportCSV = exportCSV;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+window.showToast = showToast;
+</script>
+</body>
+</html>
