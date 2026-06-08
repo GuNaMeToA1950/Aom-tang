@@ -438,6 +438,58 @@ body{font-family:'DM Sans','Sarabun',sans-serif;background:var(--surface);color:
       </div>
       </div><!-- end page-overview -->
 
+      <!-- PAGE: GOALS -->
+      <div class="page-section" id="page-goals">
+        <div class="greeting">
+          <h1>เป้าหมายการออม 🎯</h1>
+          <p>ติดตามความคืบหน้าของทุกเป้าหมาย</p>
+        </div>
+        <div class="members-summary" id="goals-summary-row">
+          <div class="sum-card"><div class="sum-icon">🎯</div><div><div class="sum-label">เป้าหมายทั้งหมด</div><div class="sum-val" id="gp-count">0</div></div></div>
+          <div class="sum-card"><div class="sum-icon">✅</div><div><div class="sum-label">สำเร็จแล้ว</div><div class="sum-val" id="gp-done">0</div></div></div>
+          <div class="sum-card"><div class="sum-icon">💰</div><div><div class="sum-label">ออมรวมทุกเป้าหมาย</div><div class="sum-val" id="gp-total">฿0</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">เป้าหมายของคุณ</div>
+            <button class="card-action" onclick="openGoalModal()">+ เพิ่มเป้าหมาย</button>
+          </div>
+          <div id="goals-page-list"></div>
+        </div>
+      </div><!-- end page-goals -->
+
+      <!-- PAGE: SAVINGS LOG -->
+      <div class="page-section" id="page-savings">
+        <div class="greeting">
+          <h1>บันทึกการออม 💰</h1>
+          <p>ประวัติการออมทั้งหมดของคุณ</p>
+        </div>
+        <div class="members-summary">
+          <div class="sum-card"><div class="sum-icon">💵</div><div><div class="sum-label">ออมสะสมทั้งหมด</div><div class="sum-val" id="sp-total">฿0</div></div></div>
+          <div class="sum-card"><div class="sum-icon">📅</div><div><div class="sum-label">ออมเดือนนี้</div><div class="sum-val" id="sp-month">฿0</div></div></div>
+          <div class="sum-card"><div class="sum-icon">📋</div><div><div class="sum-label">จำนวนรายการ</div><div class="sum-val" id="sp-count">0</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">รายการออมทั้งหมด</div>
+            <div style="display:flex;gap:.5rem;">
+              <button class="card-action" onclick="exportCSV()">📥 Export CSV</button>
+              <button class="btn-sm btn-accent" onclick="openSaveModal()">+ บันทึกการออม</button>
+            </div>
+          </div>
+          <!-- filter bar -->
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem;padding:0 .25rem;">
+            <select id="sp-filter-goal" onchange="renderSavingsPage()" style="padding:.45rem .75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;background:var(--white);color:var(--ink);outline:none;">
+              <option value="">🎯 ทุกเป้าหมาย</option>
+            </select>
+            <select id="sp-filter-month" onchange="renderSavingsPage()" style="padding:.45rem .75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;background:var(--white);color:var(--ink);outline:none;">
+              <option value="">📅 ทุกเดือน</option>
+            </select>
+          </div>
+          <div id="sp-tx-list"></div>
+        </div>
+      </div><!-- end page-savings -->
+
       <!-- PAGE: MEMBERS -->
       <div class="page-section" id="page-members">
         <div class="greeting">
@@ -656,9 +708,11 @@ function showPage(page) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   const el = document.getElementById('page-' + page);
   if (el) el.classList.add('active');
-  const titles = { overview: 'ภาพรวมการออม', members: 'สมาชิกโปรเจค' };
+  const titles = { overview: 'ภาพรวมการออม', members: 'สมาชิกโปรเจค', goals: 'เป้าหมายการออม', savings: 'บันทึกการออม' };
   document.querySelector('.topbar-title').textContent = titles[page] || 'ภาพรวมการออม';
   if (page === 'members') renderMembers();
+  if (page === 'goals') renderGoalsPage();
+  if (page === 'savings') renderSavingsPage();
 }
 
 function navClick(el, page) {
@@ -670,7 +724,171 @@ window.navClick = navClick;
 let chartInst = null;
 const goalColors = ['','gold','blue','coral','','','',''];
 
-// ── MEMBERS ──
+// ── GOALS PAGE ──
+function renderGoalsPage() {
+  const d = getUD();
+  const list = document.getElementById('goals-page-list');
+  const colorMap = ['gold','blue','coral',''];
+  let totalSaved = 0, done = 0;
+
+  if (d.goals.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">ยังไม่มีเป้าหมาย</div><div class="empty-text">กด "+ เพิ่มเป้าหมาย" เพื่อเริ่มต้น</div></div>`;
+    document.getElementById('gp-count').textContent = '0';
+    document.getElementById('gp-done').textContent = '0';
+    document.getElementById('gp-total').textContent = '฿0';
+    return;
+  }
+
+  list.innerHTML = '';
+  d.goals.forEach((g, i) => {
+    const saved = d.savings.filter(r => r.goalId === g.id).reduce((s, r) => s + r.amount, 0);
+    const pct = g.target > 0 ? Math.min(100, Math.round(saved / g.target * 100)) : 0;
+    const remaining = Math.max(0, g.target - saved);
+    const months = g.monthly > 0 && saved < g.target ? Math.ceil(remaining / g.monthly) : null;
+    const clr = colorMap[i % colorMap.length];
+    if (pct >= 100) done++;
+    totalSaved += saved;
+
+    const card = document.createElement('div');
+    card.className = 'goal-item';
+    card.style.cssText = 'margin-bottom:1rem;padding:1.25rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--white);';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <div style="font-size:1.75rem;">${g.icon}</div>
+          <div>
+            <div style="font-weight:600;font-size:1rem;">${g.name}</div>
+            <div style="font-size:.75rem;color:var(--ink-muted);">เป้าหมาย ฿${g.target.toLocaleString()}</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;">${pct}%</div>
+          <div style="font-size:.72rem;color:var(--ink-muted);">${pct>=100?'🎉 สำเร็จ!':('เหลือ ฿'+remaining.toLocaleString())}</div>
+        </div>
+      </div>
+      <div class="prog-track" style="height:10px;margin-bottom:.75rem;"><div class="prog-fill ${clr}" style="width:${pct}%;height:10px;border-radius:999px;"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-muted);">
+        <span>ออมแล้ว <strong style="color:var(--accent);">฿${saved.toLocaleString()}</strong></span>
+        <span>${months ? 'ถึงเป้าใน ~'+months+' เดือน' : pct>=100 ? '✅ ถึงเป้าหมายแล้ว' : 'ยังไม่ได้ตั้งออมรายเดือน'}</span>
+      </div>
+      <div style="margin-top:.75rem;display:flex;gap:.5rem;">
+        <button onclick="openSaveModalWithGoal('${g.id}')" style="flex:1;padding:.5rem;background:var(--accent-light);color:var(--accent);border:none;border-radius:var(--radius-sm);font-size:.8rem;cursor:pointer;font-weight:500;">+ บันทึกการออม</button>
+        <button onclick="deleteGoal('${g.id}')" style="padding:.5rem .85rem;background:var(--red-light);color:var(--red);border:none;border-radius:var(--radius-sm);font-size:.8rem;cursor:pointer;">🗑</button>
+      </div>`;
+    list.appendChild(card);
+  });
+
+  document.getElementById('gp-count').textContent = d.goals.length;
+  document.getElementById('gp-done').textContent = done;
+  document.getElementById('gp-total').textContent = '฿' + totalSaved.toLocaleString();
+}
+
+async function deleteGoal(id) {
+  if (!confirm('ลบเป้าหมายนี้?')) return;
+  const d = getUD();
+  d.goals = d.goals.filter(g => g.id !== id);
+  await saveUD(d);
+  renderAll(); renderGoalsPage();
+  showToast('ลบเป้าหมายแล้ว');
+}
+window.deleteGoal = deleteGoal;
+
+function openSaveModalWithGoal(goalId) {
+  openSaveModal();
+  setTimeout(() => { document.getElementById('m-goal').value = goalId; }, 50);
+}
+window.openSaveModalWithGoal = openSaveModalWithGoal;
+
+// ── SAVINGS PAGE ──
+function renderSavingsPage() {
+  const d = getUD();
+  const now = new Date();
+  const thisMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  const totalSaved = d.savings.reduce((s, r) => s + r.amount, 0);
+  const monthSaved = d.savings.filter(r => r.date.startsWith(thisMonth)).reduce((s, r) => s + r.amount, 0);
+
+  document.getElementById('sp-total').textContent = '฿' + totalSaved.toLocaleString();
+  document.getElementById('sp-month').textContent = '฿' + monthSaved.toLocaleString();
+  document.getElementById('sp-count').textContent = d.savings.length;
+
+  // populate filters
+  const goalSel = document.getElementById('sp-filter-goal');
+  const curGoal = goalSel.value;
+  goalSel.innerHTML = '<option value="">🎯 ทุกเป้าหมาย</option>';
+  d.goals.forEach(g => {
+    const o = document.createElement('option');
+    o.value = g.id; o.textContent = g.icon + ' ' + g.name;
+    goalSel.appendChild(o);
+  });
+  goalSel.value = curGoal;
+
+  const monthSel = document.getElementById('sp-filter-month');
+  const curMonth = monthSel.value;
+  const months = [...new Set(d.savings.map(r => r.date.slice(0,7)))].sort().reverse();
+  monthSel.innerHTML = '<option value="">📅 ทุกเดือน</option>';
+  const thNames = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  months.forEach(m => {
+    const [y, mo] = m.split('-');
+    const o = document.createElement('option');
+    o.value = m; o.textContent = thNames[+mo] + ' ' + (+y+543);
+    monthSel.appendChild(o);
+  });
+  monthSel.value = curMonth;
+
+  // filter & render
+  let filtered = [...d.savings].reverse();
+  if (goalSel.value) filtered = filtered.filter(r => r.goalId === goalSel.value);
+  if (monthSel.value) filtered = filtered.filter(r => r.date.startsWith(monthSel.value));
+
+  const container = document.getElementById('sp-tx-list');
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">💰</div><div class="empty-title">ไม่มีรายการ</div><div class="empty-text">ลองเปลี่ยนตัวกรอง หรือเพิ่มการออมใหม่</div></div>`;
+    return;
+  }
+
+  // group by date
+  const groups = {};
+  filtered.forEach(r => { if (!groups[r.date]) groups[r.date] = []; groups[r.date].push(r); });
+  container.innerHTML = '';
+  Object.keys(groups).sort().reverse().forEach(date => {
+    const dayTotal = groups[date].reduce((s, r) => s + r.amount, 0);
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;padding:.5rem .25rem;font-size:.75rem;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);margin-bottom:.25rem;';
+    header.innerHTML = `<span>${formatDate(date)}</span><span>+฿${dayTotal.toLocaleString()}</span>`;
+    container.appendChild(header);
+    groups[date].forEach(r => {
+      const goalName = d.goals.find(g => g.id === r.goalId)?.name || 'ออมทั่วไป';
+      const goalIcon = d.goals.find(g => g.id === r.goalId)?.icon || '💰';
+      const el = document.createElement('div');
+      el.className = 'tx-item';
+      el.style.cssText = 'display:flex;align-items:center;gap:.85rem;padding:.85rem .25rem;border-bottom:1px solid var(--border);';
+      el.innerHTML = `
+        <div class="tx-icon save" style="font-size:1.3rem;">${goalIcon}</div>
+        <div style="flex:1;">
+          <div style="font-size:.875rem;font-weight:500;">${r.note || 'ออมเงิน'}</div>
+          <div style="font-size:.72rem;color:var(--ink-muted);">${goalName}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <div style="font-family:'DM Serif Display',serif;color:var(--accent);">+฿${r.amount.toLocaleString()}</div>
+          <button onclick="deleteSaving('${r.id}')" style="background:none;border:none;color:var(--ink-muted);cursor:pointer;font-size:.85rem;padding:.2rem .4rem;border-radius:4px;" title="ลบ">🗑</button>
+        </div>`;
+      container.appendChild(el);
+    });
+  });
+}
+window.renderSavingsPage = renderSavingsPage;
+
+async function deleteSaving(id) {
+  if (!confirm('ลบรายการนี้?')) return;
+  const d = getUD();
+  d.savings = d.savings.filter(r => r.id !== id);
+  await saveUD(d);
+  renderAll(); renderSavingsPage();
+  showToast('ลบรายการแล้ว');
+}
+window.deleteSaving = deleteSaving;
+
+
 async function renderMembers() {
   const tbody = document.getElementById('members-tbody');
   const empty = document.getElementById('members-empty');
