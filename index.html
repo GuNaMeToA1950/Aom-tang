@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สมุดบัญชี — รายรับรายจ่าย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Sarabun:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F1E3;
+    --paper-line:#DED2AE;
+    --ink:#20291F;
+    --cover:#0F3D26;
+    --cover-2:#155232;
+    --gold:#C9A227;
+    --gold-soft:#E4CD82;
+    --income:#2E7A4C;
+    --income-bg:#E4F0E4;
+    --expense:#B23E2E;
+    --expense-bg:#F5E4DF;
+    --muted:#79705C;
+    --shadow: 0 18px 40px -20px rgba(15,61,38,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(1200px 600px at 50% -10%, #f0ead7 0%, var(--paper) 55%);
+    font-family:'Sarabun',sans-serif;
+    color:var(--ink);
+    padding:32px 16px 80px;
+    min-height:100vh;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+  .wrap.auth-wrap{max-width:440px;}
+
+  .cover{
+    background: linear-gradient(160deg, var(--cover-2) 0%, var(--cover) 65%);
+    border-radius:18px 18px 6px 6px;
+    padding:28px 30px 34px;
+    color:var(--gold-soft);
+    box-shadow:var(--shadow);
+    position:relative; overflow:hidden;
+    border:1px solid #0a2e1c;
+  }
+  .cover::before{
+    content:""; position:absolute; inset:8px;
+    border:1px solid rgba(228,205,130,0.35); border-radius:12px; pointer-events:none;
+  }
+  .cover-eyebrow{
+    font-family:'Sarabun',monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+    color:rgba(228,205,130,0.75); margin-bottom:10px;
+    display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .eyebrow-actions{display:flex; gap:8px;}
+  .cover-title{
+    font-family:'Noto Serif Thai',serif; font-size:clamp(26px,4vw,34px); font-weight:700;
+    margin:0 0 4px; color:#F7EFD3;
+  }
+  .cover-sub{font-size:13.5px; color:rgba(228,205,130,0.8); margin:0;}
+  .balance-row{margin-top:24px; display:flex; align-items:flex-end; gap:24px; flex-wrap:wrap;}
+  .balance-figure{flex:1; min-width:200px;}
+  .balance-label{font-size:18px; letter-spacing:.08em; color:rgb(255, 250, 250); margin-bottom:6px;}
+  .balance-num{
+    font-family:'Sarabun',monospace; font-weight:600; font-size:clamp(30px,6vw,46px);
+    color:#FBF6E4; letter-spacing:.01em;
+  }
+  .balance-num small{font-size:0.45em; font-weight:500; margin-left:6px; color:rgba(228,205,130,0.7);}
+  .currency{font-family:'Sarabun',sans-serif; font-weight:600;}
+  .stamp{
+    width:88px;height:88px;border-radius:50%; border:2.5px solid var(--gold-soft);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    transform:rotate(-8deg); font-family:'Noto Serif Thai',serif; font-weight:700; font-size:12px;
+    color:var(--gold-soft); line-height:1.3; letter-spacing:.02em; opacity:.9; flex-shrink:0;
+  }
+  .pill-btn{
+    background:none;border:1px solid rgba(228,205,130,0.4); color:rgba(228,205,130,0.85);
+    font-family:'Sarabun',monospace; font-size:11px; letter-spacing:.05em;
+    padding:4px 10px; border-radius:20px; cursor:pointer;
+  }
+  .pill-btn:hover{border-color:var(--gold-soft); color:#FBF6E4;}
+
+  /* Auth card */
+  .auth-card{
+    background:#fff; border:1px solid var(--paper-line); border-radius:0 0 14px 14px;
+    padding:26px 28px 30px; box-shadow:var(--shadow); border-top:none;
+  }
+  .auth-tabs{display:flex; gap:6px; margin-bottom:20px;}
+  .auth-tab{
+    flex:1; padding:9px; text-align:center; font-weight:600; font-size:13.5px;
+    border:1px solid var(--paper-line); background:#fbf8f0; color:var(--muted);
+    border-radius:8px; cursor:pointer;
+  }
+  .auth-tab.active{background:var(--cover); color:#F7EFD3; border-color:var(--cover);}
+  .auth-field{display:flex; flex-direction:column; gap:5px; margin-bottom:13px;}
+  .auth-field label{font-size:12px; color:var(--muted);}
+  .auth-field input{
+    font-family:'Sarabun',sans-serif; font-size:14.5px; padding:10px 11px; width:100%;
+    border:1px solid var(--paper-line); border-radius:8px; background:#fdfbf5; color:var(--ink);
+  }
+  .auth-field input:focus{outline:2px solid var(--gold-soft); outline-offset:1px;}
+  .pw-wrap{position:relative;}
+  .pw-wrap input{padding-right:40px;}
+  .pw-eye{
+    position:absolute; right:4px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; font-size:16px; padding:6px; line-height:1;
+    color:var(--muted);
+  }
+  .pw-eye:hover{color:var(--ink);}
+  .auth-error{background:var(--expense-bg); color:var(--expense); font-size:12.5px; padding:8px 11px; border-radius:7px; margin-bottom:13px;}
+  .auth-success{background:var(--income-bg); color:var(--income); font-size:12.5px; padding:8px 11px; border-radius:7px; margin-bottom:13px;}
+  .auth-submit{
+    width:100%; font-family:'Sarabun',sans-serif; font-weight:600; font-size:14.5px;
+    padding:11px; border-radius:9px; border:none; cursor:pointer;
+    background:var(--cover); color:#F7EFD3; margin-top:4px;
+  }
+  .auth-submit:hover{background:var(--cover-2);}
+  .auth-submit:disabled{opacity:.6; cursor:not-allowed;}
+  .auth-hint{text-align:center; font-size:12px; color:var(--muted); margin-top:14px;}
+  .auth-hint button, .link-btn{
+    background:none;border:none;color:#8a6d0f; font-weight:600; cursor:pointer; font-size:12px;
+    text-decoration:underline; padding:0;
+  }
+  .auth-back{font-size:12px; color:var(--muted); margin-bottom:14px; cursor:pointer; display:inline-block;}
+
+  /* Month strip */
+  .month-strip{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--paper); border:1px solid var(--paper-line); border-top:none;
+    border-radius:0 0 10px 10px; padding:10px 20px; margin-bottom:22px; box-shadow:var(--shadow);
+    font-family:'Sarabun',monospace; font-size:12.5px; color:var(--muted);
+  }
+  .month-strip select{
+    font-family:'Sarabun',sans-serif; font-size:13.5px; color:var(--ink);
+    border:1px solid var(--paper-line); background:#fff; border-radius:7px; padding:5px 9px;
+  }
+
+  .summary{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:26px;}
+  @media(max-width:640px){.summary{grid-template-columns:1fr 1fr;}}
+  .card{background:#fff; border:1px solid var(--paper-line); border-radius:12px; padding:16px 18px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;}
+  .card.income::before{background:var(--income);}
+  .card.expense::before{background:var(--expense);}
+  .card.net::before{background:var(--gold);}
+  .card-label{font-size:16px; color:var(--muted);}
+  .card-value{font-family:'Sarabun',monospace; font-weight:600; font-size:22px;}
+  .card.income .card-value{color:var(--income);}
+  .card.expense .card-value{color:var(--expense);}
+  .card.net .card-value{color:#8a6d0f;}
+
+  .panel{background:#fff; border:1px solid var(--paper-line); border-radius:14px; padding:20px; margin-bottom:26px; box-shadow:0 10px 24px -18px rgba(0,0,0,.25);}
+  .panel h2{font-family:'Noto Serif Thai',serif; font-size:17px; margin:0 0 14px; display:flex; align-items:center; gap:8px; justify-content:space-between;}
+  .type-toggle{display:flex; gap:8px; margin-bottom:14px;}
+  .type-btn{flex:1; padding:10px; border-radius:9px; border:1.5px solid var(--paper-line); background:#fbf8f0; font-weight:600; font-size:14px; cursor:pointer; color:var(--muted); transition:.15s;}
+  .type-btn.active[data-type="income"]{background:var(--income-bg); border-color:var(--income); color:var(--income);}
+  .type-btn.active[data-type="expense"]{background:var(--expense-bg); border-color:var(--expense); color:var(--expense);}
+
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media(max-width:560px){.form-grid{grid-template-columns:1fr;}}
+  .field{display:flex; flex-direction:column; gap:5px;}
+  .field label{font-size:16px; color:var(--muted);}
+  .field input, .field select{
+    font-family:'Sarabun',sans-serif; font-size:14.5px; padding:9px 10px; width:100%;
+    border:1px solid var(--paper-line); border-radius:8px; background:#fdfbf5; color:var(--ink);
+  }
+  .field input:focus, .field select:focus{outline:2px solid var(--gold-soft); outline-offset:1px;}
+  .form-actions{margin-top:16px; display:flex; justify-content:flex-end; gap:10px;}
+  .btn-submit{
+    font-family:'Sarabun',sans-serif; font-weight:600; font-size:14.5px; padding:10px 22px;
+    border-radius:9px; border:none; cursor:pointer; background:var(--cover); color:#F7EFD3; transition:.15s;
+  }
+  .btn-submit:hover{background:var(--cover-2);}
+  .btn-submit:disabled{opacity:.6; cursor:not-allowed;}
+  .btn-cancel{
+    font-family:'Sarabun',sans-serif; font-weight:600; font-size:14.5px; padding:10px 18px;
+    border-radius:9px; border:1px solid var(--paper-line); cursor:pointer; background:#fff; color:var(--muted);
+  }
+
+  .ledger-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .ledger-head h2{font-family:'Noto Serif Thai',serif; font-size:17px; margin:0;}
+  .btn-ghost{
+    font-size:12.5px; font-family:'Sarabun',monospace; color:var(--muted);
+    background:none; border:1px solid var(--paper-line); border-radius:7px; padding:6px 10px; cursor:pointer;
+  }
+  .btn-ghost:hover{border-color:var(--gold); color:#8a6d0f;}
+
+  .ledger{background:#fff; border:1px solid var(--paper-line); border-radius:14px; overflow:hidden; box-shadow:0 10px 24px -18px rgba(0,0,0,.25);}
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  thead th{
+    text-align:left; font-weight:600; font-size:11.5px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--muted); padding:10px 14px; border-bottom:1px solid var(--paper-line); background:#fbf8f0;
+  }
+  tbody td{padding:11px 14px; border-bottom:1px dashed var(--paper-line); vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  .num{font-family:'Sarabun',monospace; text-align:right; white-space:nowrap;}
+  .amt-income{color:var(--income); font-weight:600;}
+  .amt-expense{color:var(--expense); font-weight:600;}
+  .cat-tag{display:inline-block; font-size:11.5px; padding:2px 8px; border-radius:20px; background:#f1ecd9; color:var(--muted);}
+  .desc{font-weight:500;}
+  .row-date{font-family:'Sarabun',monospace; font-size:12px; color:var(--muted); white-space:nowrap;}
+  .del-btn{background:none;border:none;color:var(--paper-line);cursor:pointer;font-size:15px; transition:.15s; line-height:1;}
+  .del-btn:hover{color:var(--expense);}
+  .empty-row td{text-align:center; padding:40px 14px; color:var(--muted); font-size:13.5px;}
+
+  footer{text-align:center; font-size:11.5px; color:var(--muted); margin-top:26px; font-family:'Sarabun',monospace;}
+  .loading{text-align:center; padding:60px 0; color:var(--muted); font-family:'Sarabun',monospace; font-size:13px;}
+  .config-warning{
+    max-width:920px; margin:0 auto 20px; background:#fff3ea; border:1px solid #e8b98a; color:#7a3e12;
+    border-radius:10px; padding:14px 18px; font-size:13px; line-height:1.6;
+  }
+  .config-warning code{background:#fff; padding:1px 5px; border-radius:4px;}
+</style>
+</head>
+<body>
+<div id="configWarning"></div>
+<div class="wrap" id="app">
+  <div class="loading">กำลังเปิดสมุดบัญชี…</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, onAuthStateChanged, sendPasswordResetEmail, updateProfile,
+  updateEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import {
+  getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+/* =====================================================================
+   ⚠️ ใส่ค่า Firebase Config ของคุณตรงนี้ (หาได้จาก Firebase Console
+   > Project settings > General > Your apps > SDK setup and configuration)
+   ===================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBB0zf4w4Pju_z6dTl1evvn5TuFfEJALww",
+  authDomain: "money-928f1.firebaseapp.com",
+  projectId: "money-928f1",
+  storageBucket: "money-928f1.firebasestorage.app",
+  messagingSenderId: "843312735126",
+  appId: "1:843312735126:web:7f77f51aa2ae9b1b5ef3b7",
+  measurementId: "G-P7CMPWBD1P"
+};
+/* ===================================================================== */
+
+const isConfigured = !Object.values(firebaseConfig).some(v => String(v).startsWith('YOUR_'));
+
+if(!isConfigured){
+  document.getElementById('configWarning').innerHTML = `
+    <div class="config-warning">
+      ⚠️ ยังไม่ได้ตั้งค่า Firebase — เปิดไฟล์นี้ด้วยตัวแก้ไขข้อความ แล้วแทนที่ค่าใน
+      <code>firebaseConfig</code> ด้วยค่าจากโปรเจกต์ Firebase ของคุณ, เปิดใช้งาน
+      <code>Authentication → Sign-in method → Email/Password</code> และสร้าง
+      <code>Firestore Database</code> พร้อม security rules ที่แนบไว้ในคำตอบ
+    </div>`;
+}
+
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
+
+const CATEGORIES = {
+  income: ['เงินเดือน','โบนัส','ธุรกิจ/ฟรีแลนซ์','ของขวัญ','ดอกเบี้ย/เงินปันผล','อื่นๆ'],
+  expense: ['อาหาร & เครื่องดื่ม','เดินทาง','ช้อปปิ้ง','บิล & สาธารณูปโภค','บันเทิง','สุขภาพ','การศึกษา','อื่นๆ']
+};
+
+let currentUser = null;
+let transactions = [];
+let unsubscribeTx = null;
+let currentType = 'income';
+let monthFilter = 'all';
+let authMode = 'login'; // login | signup | forgot
+let authError = '';
+let authSuccess = '';
+let authBusy = false;
+let showProfile = false;
+let profileError = '';
+let profileSuccess = '';
+let profileBusy = false;
+
+const app = document.getElementById('app');
+
+function fmt(n){ return Number(n).toLocaleString('th-TH', {minimumFractionDigits:0, maximumFractionDigits:2}); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function monthKey(dateStr){ return dateStr.slice(0,7); }
+function monthLabel(key){
+  const [y,m] = key.split('-');
+  const thMonths = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return `${thMonths[parseInt(m,10)]} ${parseInt(y,10)+543}`;
+}
+function fmtDateShort(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return `${d.getDate()} ${thMonths[d.getMonth()]} ${(d.getFullYear()+543).toString().slice(-2)}`;
+}
+function escapeHtml(str){ const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+
+function friendlyAuthError(code){
+  const map = {
+    'auth/invalid-email': 'อีเมลไม่ถูกต้อง',
+    'auth/user-not-found': 'ไม่พบบัญชีนี้',
+    'auth/wrong-password': 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
+    'auth/invalid-credential': 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
+    'auth/email-already-in-use': 'อีเมลนี้ถูกใช้สมัครไปแล้ว',
+    'auth/weak-password': 'รหัสผ่านสั้นเกินไป (อย่างน้อย 6 ตัวอักษร)',
+    'auth/too-many-requests': 'ลองผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่'
+  };
+  return map[code] || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+}
+
+/* ---------- auth state ---------- */
+onAuthStateChanged(auth, (user) => {
+  if(unsubscribeTx){ unsubscribeTx(); unsubscribeTx = null; }
+  if(user){
+    currentUser = user;
+    transactions = [];
+    const q = query(collection(db, 'users', user.uid, 'transactions'));
+    unsubscribeTx = onSnapshot(q, (snap) => {
+      transactions = snap.docs.map(d => ({id: d.id, ...d.data()}));
+      render();
+    }, (err) => { txError = friendlyFirestoreError(err); render(); });
+  } else {
+    currentUser = null;
+    transactions = [];
+  }
+  render();
+});
+
+/* ---------- auth actions ---------- */
+async function handleLogin(email, password){
+  authError=''; authBusy = true; render();
+  try{
+    await signInWithEmailAndPassword(auth, email, password);
+  }catch(e){ authError = friendlyAuthError(e.code); }
+  authBusy = false; render();
+}
+async function handleSignup(name, email, password){
+  authError=''; authBusy = true; render();
+  try{
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, {displayName: name});
+    currentUser = cred.user;
+  }catch(e){ authError = friendlyAuthError(e.code); }
+  authBusy = false; render();
+}
+async function handleForgotPassword(email){
+  authError=''; authSuccess=''; authBusy = true; render();
+  try{
+    await sendPasswordResetEmail(auth, email);
+    authSuccess = 'ส่งลิงก์รีเซ็ตรหัสผ่านไปที่อีเมลแล้ว กรุณาตรวจสอบกล่องจดหมาย';
+  }catch(e){ authError = friendlyAuthError(e.code); }
+  authBusy = false; render();
+}
+async function handleLogout(){
+  await signOut(auth);
+  monthFilter = 'all'; showProfile = false;
+}
+
+/* ---------- profile actions ---------- */
+async function handleProfileUpdate({name, newEmail, newPassword, currentPassword}){
+  profileError=''; profileSuccess=''; profileBusy = true; render();
+  try{
+    if(newEmail || newPassword){
+      if(!currentPassword){ throw {code:'need-current-password'}; }
+      const cred = EmailAuthProvider.credential(currentUser.email, currentPassword);
+      await reauthenticateWithCredential(currentUser, cred);
+    }
+    if(name && name !== currentUser.displayName){
+      await updateProfile(currentUser, {displayName: name});
+    }
+    if(newEmail && newEmail !== currentUser.email){
+      await updateEmail(currentUser, newEmail);
+    }
+    if(newPassword){
+      await updatePassword(currentUser, newPassword);
+    }
+    profileSuccess = 'บันทึกข้อมูลโปรไฟล์เรียบร้อยแล้ว';
+  }catch(e){
+    profileError = e.code === 'need-current-password'
+      ? 'กรุณากรอกรหัสผ่านปัจจุบันเพื่อยืนยันตัวตน'
+      : friendlyAuthError(e.code);
+  }
+  profileBusy = false; render();
+}
+
+/* ---------- transaction actions ---------- */
+let txError = '';
+function friendlyFirestoreError(e){
+  console.error(e);
+  if(e.code === 'permission-denied') return 'Firestore ปฏิเสธการบันทึก — กรุณาตรวจสอบ Security Rules ใน Firebase Console ว่าอนุญาตให้ผู้ใช้ที่ล็อกอินเขียนข้อมูลของตัวเองได้';
+  if(e.code === 'unavailable') return 'เชื่อมต่อ Firestore ไม่ได้ ลองตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';
+  return 'บันทึกข้อมูลไม่สำเร็จ: ' + (e.message || e.code || 'ไม่ทราบสาเหตุ');
+}
+async function addTransaction(tx){
+  txError = '';
+  try{ await addDoc(collection(db, 'users', currentUser.uid, 'transactions'), tx); }
+  catch(e){ txError = friendlyFirestoreError(e); render(); }
+}
+async function deleteTransaction(id){
+  txError = '';
+  try{ await deleteDoc(doc(db, 'users', currentUser.uid, 'transactions', id)); }
+  catch(e){ txError = friendlyFirestoreError(e); render(); }
+}
+
+function getMonthOptions(){ return Array.from(new Set(transactions.map(t => monthKey(t.date)))).sort().reverse(); }
+function computeSummary(list){
+  let income = 0, expense = 0;
+  list.forEach(t => { if(t.type==='income') income += t.amount; else expense += t.amount; });
+  return {income, expense, net: income - expense};
+}
+function exportCSV(){
+  const rows = [['วันที่','ประเภท','รายการ','หมวดหมู่','จำนวนเงิน']];
+  [...transactions].sort((a,b)=> a.date.localeCompare(b.date)).forEach(t=>{
+    rows.push([t.date, t.type==='income'?'รายรับ':'รายจ่าย', t.desc, t.category, t.amount]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(["\uFEFF"+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'สมุดบัญชี.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- password toggle helper ---------- */
+function wirePasswordToggles(){
+  document.querySelectorAll('.pw-eye').forEach(btn => {
+    btn.onclick = () => {
+      const input = document.getElementById(btn.dataset.target);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.textContent = isHidden ? '🙈' : '👁';
+    };
+  });
+}
+function pwField(id, labelText, autocomplete){
+  return `
+    <div class="auth-field">
+      <label>${labelText}</label>
+      <div class="pw-wrap">
+        <input type="password" id="${id}" required autocomplete="${autocomplete}">
+        <button type="button" class="pw-eye" data-target="${id}">👁</button>
+      </div>
+    </div>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  app.className = currentUser ? '' : 'auth-wrap';
+  if(!currentUser){ renderAuth(); return; }
+  renderApp();
+}
+
+function renderAuth(){
+  let body = '';
+  if(authMode === 'forgot'){
+    body = `
+      <span class="auth-back" id="backToLogin">← กลับไปหน้าเข้าสู่ระบบ</span>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 16px;">กรอกอีเมลที่ใช้สมัคร เราจะส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ไปให้</p>
+      ${authError ? `<div class="auth-error">${escapeHtml(authError)}</div>` : ''}
+      ${authSuccess ? `<div class="auth-success">${escapeHtml(authSuccess)}</div>` : ''}
+      <form id="forgotForm">
+        <div class="auth-field"><label>อีเมล</label><input type="email" id="forgotEmail" required autocomplete="username"></div>
+        <button type="submit" class="auth-submit" ${authBusy?'disabled':''}>${authBusy?'กำลังส่ง…':'ส่งลิงก์รีเซ็ตรหัสผ่าน'}</button>
+      </form>
+    `;
+  } else if(authMode === 'signup'){
+    body = `
+      ${authError ? `<div class="auth-error">${escapeHtml(authError)}</div>` : ''}
+      <form id="signupForm">
+        <div class="auth-field"><label>ชื่อ</label><input type="text" id="signupName" required autocomplete="name"></div>
+        <div class="auth-field"><label>อีเมล</label><input type="email" id="signupEmail" required autocomplete="username"></div>
+        ${pwField('signupPassword', 'รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)', 'new-password')}
+        <button type="submit" class="auth-submit" ${authBusy?'disabled':''}>${authBusy?'กำลังสร้างบัญชี…':'สร้างบัญชีและเริ่มบันทึก →'}</button>
+      </form>
+      <div class="auth-hint">มีบัญชีอยู่แล้ว? <button id="goLogin">เข้าสู่ระบบ</button></div>
+    `;
+  } else {
+    body = `
+      ${authError ? `<div class="auth-error">${escapeHtml(authError)}</div>` : ''}
+      <form id="loginForm">
+        <div class="auth-field"><label>อีเมล</label><input type="email" id="loginEmail" required autocomplete="username"></div>
+        ${pwField('loginPassword', 'รหัสผ่าน', 'current-password')}
+        <div style="text-align:right;margin:-6px 0 14px;"><button type="button" class="link-btn" id="goForgot">ลืมรหัสผ่าน?</button></div>
+        <button type="submit" class="auth-submit" ${authBusy?'disabled':''}>${authBusy?'กำลังเข้าสู่ระบบ…':'เข้าสู่ระบบ →'}</button>
+      </form>
+      <div class="auth-hint">ยังไม่มีบัญชี? <button id="goSignup">สมัครสมาชิกฟรี</button></div>
+    `;
+  }
+
+  app.innerHTML = `
+    <div class="cover">
+      <div class="cover-eyebrow"><span>เล่มที่ 001 · ส่วนบุคคล</span></div>
+      <h1 class="cover-title">สมุดบัญชีของฉัน</h1>
+      <p class="cover-sub">เข้าสู่ระบบเพื่อเปิดสมุดบัญชีของคุณ หรือสมัครเล่มใหม่ในไม่กี่วินาที</p>
+    </div>
+    <div class="auth-card">
+      ${authMode !== 'forgot' ? `
+      <div class="auth-tabs">
+        <div class="auth-tab ${authMode==='login'?'active':''}" id="tabLogin">เข้าสู่ระบบ</div>
+        <div class="auth-tab ${authMode==='signup'?'active':''}" id="tabSignup">สมัครสมาชิก</div>
+      </div>` : ''}
+      ${body}
+    </div>
+    <footer>สมุดบัญชี · ข้อมูลถูกเก็บบน Firebase (Authentication + Firestore)</footer>
+  `;
+
+  wirePasswordToggles();
+
+  if(authMode !== 'forgot'){
+    document.getElementById('tabLogin').onclick = () => { authMode='login'; authError=''; authSuccess=''; render(); };
+    document.getElementById('tabSignup').onclick = () => { authMode='signup'; authError=''; authSuccess=''; render(); };
+  }
+  if(authMode === 'login'){
+    document.getElementById('goSignup').onclick = () => { authMode='signup'; authError=''; render(); };
+    document.getElementById('goForgot').onclick = () => { authMode='forgot'; authError=''; authSuccess=''; render(); };
+    document.getElementById('loginForm').onsubmit = (e) => {
+      e.preventDefault();
+      handleLogin(document.getElementById('loginEmail').value.trim(), document.getElementById('loginPassword').value);
+    };
+  } else if(authMode === 'signup'){
+    document.getElementById('goLogin').onclick = () => { authMode='login'; authError=''; render(); };
+    document.getElementById('signupForm').onsubmit = (e) => {
+      e.preventDefault();
+      handleSignup(
+        document.getElementById('signupName').value.trim(),
+        document.getElementById('signupEmail').value.trim(),
+        document.getElementById('signupPassword').value
+      );
+    };
+  } else {
+    document.getElementById('backToLogin').onclick = () => { authMode='login'; authError=''; authSuccess=''; render(); };
+    document.getElementById('forgotForm').onsubmit = (e) => {
+      e.preventDefault();
+      handleForgotPassword(document.getElementById('forgotEmail').value.trim());
+    };
+  }
+}
+
+function renderProfilePanel(){
+  if(!showProfile) return '';
+  return `
+    <div class="panel">
+      <h2>แก้ไขโปรไฟล์ <button class="btn-ghost" id="closeProfile">ปิด ✕</button></h2>
+      ${profileError ? `<div class="auth-error">${escapeHtml(profileError)}</div>` : ''}
+      ${profileSuccess ? `<div class="auth-success">${escapeHtml(profileSuccess)}</div>` : ''}
+      <form id="profileForm">
+        <div class="form-grid">
+          <div class="field"><label>ชื่อ</label><input type="text" id="pName" value="${escapeHtml(currentUser.displayName||'')}"></div>
+          <div class="field"><label>อีเมล</label><input type="email" id="pEmail" value="${escapeHtml(currentUser.email||'')}"></div>
+        </div>
+        <div class="form-grid" style="margin-top:12px;">
+          <div class="field pw-wrap">
+            <label>รหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)</label>
+            <div class="pw-wrap"><input type="password" id="pNewPassword" autocomplete="new-password"><button type="button" class="pw-eye" data-target="pNewPassword">👁</button></div>
+          </div>
+          <div class="field pw-wrap">
+            <label>รหัสผ่านปัจจุบัน (ต้องกรอกถ้าเปลี่ยนอีเมล/รหัสผ่าน)</label>
+            <div class="pw-wrap"><input type="password" id="pCurrentPassword" autocomplete="current-password"><button type="button" class="pw-eye" data-target="pCurrentPassword">👁</button></div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="cancelProfile">ยกเลิก</button>
+          <button type="submit" class="btn-submit" ${profileBusy?'disabled':''}>${profileBusy?'กำลังบันทึก…':'บันทึกโปรไฟล์'}</button>
+        </div>
+      </form>
+    </div>
+  `;
+}
+
+function renderApp(){
+  const allTimeTotal = computeSummary(transactions).net;
+  const monthOpts = getMonthOptions();
+  const filtered = monthFilter === 'all' ? transactions : transactions.filter(t => monthKey(t.date) === monthFilter);
+  const sum = computeSummary(filtered);
+  const sortedDesc = [...filtered].sort((a,b)=> b.date.localeCompare(a.date) || (b.createdAt||0) - (a.createdAt||0));
+  const catOptions = CATEGORIES[currentType].map(c => `<option value="${c}">${c}</option>`).join('');
+  const displayName = currentUser.displayName || currentUser.email;
+
+  app.innerHTML = `
+    <div class="cover">
+      <div class="cover-eyebrow">
+        <span>เล่มที่ 001 · ${escapeHtml(displayName)}</span>
+        <div class="eyebrow-actions">
+          <button class="pill-btn" id="profileBtn">โปรไฟล์</button>
+          <button class="pill-btn" id="logoutBtn">ออกจากระบบ</button>
+        </div>
+      </div>
+      <h1 class="cover-title">สมุดบัญชีของฉัน</h1>
+      <p class="cover-sub">บันทึกรายรับรายจ่ายประจำวัน เก็บทุกบาททุกสตางค์ไว้ในที่เดียว</p>
+      <div class="balance-row">
+        <div class="balance-figure">
+          <div class="balance-label">ยอดคงเหลือทั้งหมด</div>
+          <div class="balance-num"><span class="currency">฿</span>${fmt(allTimeTotal)}<small>บาท</small></div>
+        </div>
+        <div class="stamp">${allTimeTotal >= 0 ? 'มีเงินออม' : 'ติดลบ'}<br>${fmt(Math.abs(allTimeTotal))}</div>
+      </div>
+    </div>
+
+    <div class="month-strip">
+      <span>แสดงข้อมูล ${monthFilter==='all' ? 'ทุกเดือน' : monthLabel(monthFilter)} · ${filtered.length} รายการ</span>
+      <select id="monthSelect">
+        <option value="all" ${monthFilter==='all'?'selected':''}>ทุกเดือน</option>
+        ${monthOpts.map(k => `<option value="${k}" ${monthFilter===k?'selected':''}>${monthLabel(k)}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="summary">
+      <div class="card income"><div class="card-label">รายรับ</div><div class="card-value"><span class="currency">฿</span>${fmt(sum.income)}</div></div>
+      <div class="card expense"><div class="card-label">รายจ่าย</div><div class="card-value"><span class="currency">฿</span>${fmt(sum.expense)}</div></div>
+      <div class="card net"><div class="card-label">สุทธิ</div><div class="card-value"><span class="currency">฿</span>${fmt(sum.net)}</div></div>
+    </div>
+
+    ${renderProfilePanel()}
+
+    ${txError ? `<div class="auth-error" style="margin-bottom:16px;">${escapeHtml(txError)}</div>` : ''}
+
+    <div class="panel">
+      <h2>+ เพิ่มรายการใหม่</h2>
+      <div class="type-toggle">
+        <button type="button" class="type-btn ${currentType==='income'?'active':''}" data-type="income" id="btnIncome">💰 รายรับ</button>
+        <button type="button" class="type-btn ${currentType==='expense'?'active':''}" data-type="expense" id="btnExpense">🧾 รายจ่าย</button>
+      </div>
+      <form id="txForm">
+        <div class="form-grid">
+          <div class="field"><label>วันที่</label><input type="date" id="fDate" value="${todayStr()}" required></div>
+          <div class="field"><label>จำนวนเงิน (บาท)</label><input type="number" id="fAmount" min="0" step="0.01" placeholder="0.00" required></div>
+          <div class="field"><label>รายการ</label><input type="text" id="fDesc" placeholder="เช่น ค่าข้าวเที่ยง" required></div>
+          <div class="field"><label>หมวดหมู่</label><select id="fCategory">${catOptions}</select></div>
+        </div>
+        <div class="form-actions"><button type="submit" class="btn-submit">บันทึกรายการ ✓</button></div>
+      </form>
+    </div>
+
+    <div class="ledger-head">
+      <h2>รายการทั้งหมด</h2>
+      <button class="btn-ghost" id="exportBtn">📥 Export CSV</button>
+    </div>
+    <div class="ledger">
+      <table>
+        <thead><tr><th>วันที่</th><th>รายการ</th><th>หมวดหมู่</th><th style="text-align:right">รายรับ</th><th style="text-align:right">รายจ่าย</th><th></th></tr></thead>
+        <tbody>
+          ${sortedDesc.length === 0 ? `
+            <tr class="empty-row"><td colspan="6">ยังไม่มีรายการ — เริ่มบันทึกรายการแรกของคุณด้านบนได้เลย 📝</td></tr>
+          ` : sortedDesc.map(t => `
+            <tr>
+              <td class="row-date">${fmtDateShort(t.date)}</td>
+              <td class="desc">${escapeHtml(t.desc)}</td>
+              <td><span class="cat-tag">${escapeHtml(t.category)}</span></td>
+              <td class="num amt-income">${t.type==='income' ? '<span class="currency">฿</span>'+fmt(t.amount) : ''}</td>
+              <td class="num amt-expense">${t.type==='expense' ? '<span class="currency">฿</span>'+fmt(t.amount) : ''}</td>
+              <td class="num"><button class="del-btn" data-id="${t.id}" title="ลบรายการ">✕</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <footer>สมุดบัญชี · เข้าสู่ระบบในนาม ${escapeHtml(currentUser.email)}</footer>
+  `;
+
+  wirePasswordToggles();
+
+  document.getElementById('logoutBtn').onclick = handleLogout;
+  document.getElementById('profileBtn').onclick = () => { showProfile = !showProfile; profileError=''; profileSuccess=''; render(); };
+  document.getElementById('btnIncome').onclick = () => { currentType='income'; render(); };
+  document.getElementById('btnExpense').onclick = () => { currentType='expense'; render(); };
+  document.getElementById('monthSelect').onchange = (e) => { monthFilter = e.target.value; render(); };
+  document.getElementById('exportBtn').onclick = exportCSV;
+
+  document.getElementById('txForm').onsubmit = (e) => {
+    e.preventDefault();
+    const date = document.getElementById('fDate').value;
+    const amount = parseFloat(document.getElementById('fAmount').value);
+    const desc = document.getElementById('fDesc').value.trim();
+    const category = document.getElementById('fCategory').value;
+    if(!date || !amount || amount <= 0 || !desc) return;
+    addTransaction({ type: currentType, date, amount, desc, category, createdAt: Date.now() });
+    e.target.reset();
+    document.getElementById('fDate').value = todayStr();
+  };
+
+  document.querySelectorAll('.del-btn').forEach(btn => { btn.onclick = () => deleteTransaction(btn.dataset.id); });
+
+  if(showProfile){
+    document.getElementById('closeProfile').onclick = () => { showProfile=false; render(); };
+    document.getElementById('cancelProfile').onclick = () => { showProfile=false; render(); };
+    document.getElementById('profileForm').onsubmit = (e) => {
+      e.preventDefault();
+      handleProfileUpdate({
+        name: document.getElementById('pName').value.trim(),
+        newEmail: document.getElementById('pEmail').value.trim(),
+        newPassword: document.getElementById('pNewPassword').value,
+        currentPassword: document.getElementById('pCurrentPassword').value
+      });
+    };
+  }
+}
+</script>
+</body>
+</html>
